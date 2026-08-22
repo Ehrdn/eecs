@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Reflection.Metadata;
 
-namespace EECS;
+using EECS.Core.Components;
+
+namespace EECS.Core;
 
 /// <summary>
 /// Entity.
@@ -58,13 +61,22 @@ public readonly struct Entity : IEquatable<Entity>
 public class EntitiesManager
 {
     public readonly World OfWorld;
+    private ComponentsManager _componentsManager => OfWorld.Components;
     /// <summary>
     /// The max entity ID reached + 1, remains even after entities are Destroyed. Only decreased when resets.
     /// </summary>
     public int EntityIDCount { get; private set; } = 0;
+    public readonly int MaxEntityID;
 
     private Dictionary<int, int> _generations;
     private Queue<int> _availableIDs;
+    /// <summary>
+    /// Stores Component ID List of the entity.
+    /// Makes destroying entities O(k) and not O(C), where k is the number of components on that entity and C is the total components types count.
+    /// Remove a component from a single entity is O(k) but still pretty cheap.
+    /// Cheaper than Archetype, I hope......
+    /// </summary>
+    private List<int>[] _entityComponents;
 
     public Entity CreateEntity()
     {
@@ -76,15 +88,25 @@ public class EntitiesManager
         int gen = GetEntityGeneration(id);
         return new Entity(id, gen);
     }
-    // TODO: Make all components that the entity has removed from their sparse set.
+    
+    // TODO: Make all components that the entity has removed from their component pool.
     public void DestroyEntity(Entity entity)
     {
+        if (!IsAlive(entity))
+            throw new ArgumentException($"{entity} is not alive.");
+        
+        // Remove all components of the entity from component pools.
+        foreach(int cid in _entityComponents[entity.ID])
+            _componentsManager.GetSet(cid).EntityDestoryed(entity);
+        _entityComponents[entity.ID].Clear();
+
         if(!_generations.ContainsKey(entity.ID))
             _generations[entity.ID] = 1;
         else
             _generations[entity.ID]++;
         _availableIDs.Enqueue(entity.ID);
     }
+    
     public int GetEntityGeneration(int id)
     {
         if(!_generations.ContainsKey(id))
@@ -100,28 +122,66 @@ public class EntitiesManager
             && GetEntityGeneration(entity.ID) == entity.Generation;
     }
 
-    public void Reset()
+    /// <summary>
+    /// Should be called along with ComponentsManager's Reset().
+    /// </summary>
+    internal void Reset()
     {
         EntityIDCount = 0;
         _generations.Clear();
         _availableIDs.Clear();
+        _entityComponents = new List<int>[MaxEntityID + 1];
     }
 
     /// <summary>
-    /// Registering that an entity has a component now.
-    /// Only expected to be called by SparseSet.
+    /// It's like... Dispose(), but internal.
+    /// </summary>
+    internal void Free()
+    {
+        _generations = null!;
+        _availableIDs = null!;
+        _entityComponents = null!;
+    }
+
+    /// <summary>
+    /// Registering that an entity has just been added a component.
+    /// Only expected to be called by ComponentPool.
     /// </summary>
     /// <param name="entity"></param>
     /// <param name="componentID"></param>
-    internal void RegisterEntityComponentAdd(Entity entity, int componentID)
+    internal void TrackComponentAdd(Entity entity, int componentID)
     {
+        int eid = entity.ID;
         
+        // ComponentPool should have already checked if the entity is alive by this point.
+        
+        if(_entityComponents[eid] == null)
+            _entityComponents[eid] = new List<int>();
+        
+        _entityComponents[eid].Add(componentID);
+    }
+    
+    /// <summary>
+    /// Registering that an entity has just been removed a component.
+    /// Only expected to be called by ComponentPool.
+    /// </summary>
+    /// <param name="entity"></param>
+    /// <param name="componentID"></param>
+    internal void TrackComponentRemove(Entity entity, int componentID)
+    {
+        int eid = entity.ID;
+        
+        // ComponentPool should have already checked if the entity is alive by this point, and the List should not be null when attempting to remove component.
+        
+        _entityComponents[eid].Remove(componentID);
     }
 
-    public EntitiesManager(World world)
+    public EntitiesManager(World world, int maxEntityID)
     {
         OfWorld = world;
+        MaxEntityID = maxEntityID;
         _generations = new Dictionary<int, int>();
         _availableIDs = new Queue<int>();
+        _entityComponents = new List<int>[MaxEntityID + 1];
     }
 }

@@ -5,19 +5,20 @@ using System.ComponentModel.Design.Serialization;
 using System.Diagnostics.Contracts;
 using System.Reflection;
 
-namespace EECS;
+using EECS.Core.Components;
+
+namespace EECS.Core;
 
 /// <summary>
 /// World and World management.
 /// </summary>
-public class World
+public class World : IDisposable
 {
 	/// <summary>
 	/// Default / Current World for any method that requires a World but has an version that omits World for simplicity.
 	/// </summary>
 	public static World? DefaultWorld { get; set; }
 	public static int DefaultMaxEntityID { get; set; } = 100000;
-	public static int DefaultMaxEntityCount { get; set; } = 100000;
 
 	public static int Count { get; private set; } = 0;
 	
@@ -27,24 +28,31 @@ public class World
 	public int ID { get; set; }
 	public string Name { get; private set; }
 	
-	public EntitiesManager Entities;
-	public ComponentsManager Components;
+	public readonly EntitiesManager Entities;
+	public readonly ComponentsManager Components;
 
-	public World(string name, int maxEntityID, int maxEntityCount)
+	public World(string name, int maxEntityID)
 	{
 		Name = name;
-		ID = Count;
-		Count++;
-		Entities = new EntitiesManager(this);
+		ID = Count++;
+		Entities = new EntitiesManager(this, maxEntityID);
 		Components = new ComponentsManager(this, maxEntityID);
 	}
 
-	public World(string name) : this(name, DefaultMaxEntityID, DefaultMaxEntityCount) { }
-}
+	public World(string name) : this(name, DefaultMaxEntityID) { }
 
-[Component]
-public struct Position
-{
-	public readonly int x, y;
+	public void Dispose()
+	{
+		Entities.Free();
+		Components.Free();
+		
+		GC.SuppressFinalize(this);
+	}
+
+	public void Reset()
+	{
+		Entities.Reset();
+		Components.Reset();
+	}
 }
 
