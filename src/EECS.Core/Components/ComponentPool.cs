@@ -110,7 +110,7 @@ public class ComponentPool<T> : IComponentPool where T : struct
     /// Entities Manager of this component pool.
     /// Used to validate entity status, and to register component changes on an entity.
     /// </summary>
-    private EntitiesManager _entitiesManager;
+    private readonly EntitiesManager _entitiesManager;
 
     public readonly int MaxID;
     public readonly int SparseArrayPageSize;
@@ -159,10 +159,10 @@ public class ComponentPool<T> : IComponentPool where T : struct
                 entity + $" already has component {typeof(T).FullName}."
             );
         
-        int denseIndex = _sparse[entity.ID];
+        // int denseIndex = _sparse[entity.ID];
         _dense.Add(comp);
         _entities.Add(entity);
-        _sparse[entity.ID] = denseIndex;
+        _sparse[entity.ID] = Count - 1;
 
         _entitiesManager.TrackComponentAdd(entity, ComponentID);
     }

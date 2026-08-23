@@ -74,11 +74,13 @@ public class ComponentsManager
         for(int i = 0; i < _componentTypes.Length; i++)
         {
             Type poolType = typeof(ComponentPool<>).MakeGenericType(_componentTypes[i]);
+            // Console.WriteLine($"Attempting to construct Pool Type {poolType} of Component Type {_componentTypes[i]}");
 
             _pools[i] = (IComponentPool)Activator.CreateInstance(
                 poolType,
                 OfWorld,
-                MaxEntityID
+                MaxEntityID,
+                4096
             )!;
         }
     }

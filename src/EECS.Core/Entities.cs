@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Dynamic;
 using System.Reflection.Metadata;
 
@@ -73,10 +74,17 @@ public class EntitiesManager
     /// <summary>
     /// Stores Component ID List of the entity.
     /// Makes destroying entities O(k) and not O(C), where k is the number of components on that entity and C is the total components types count.
-    /// Remove a component from a single entity is O(k) but still pretty cheap.
-    /// Cheaper than Archetype, I hope......
+    /// Remove a component from a single entity is O(k) because of this but still pretty cheap.
+    /// Cheaper than Archetype ECS, I hope......
     /// </summary>
     private List<int>[] _entityComponents;
+
+    public ReadOnlyCollection<int>? GetEntityComponentIDs(Entity entity)
+    {
+        if(!IsAlive(entity))
+            return null;
+        return _entityComponents[entity.ID]?.AsReadOnly();
+    }
 
     public Entity CreateEntity()
     {
@@ -85,11 +93,14 @@ public class EntitiesManager
             id = _availableIDs.Dequeue();
         else
             id = EntityIDCount++;
+        
+        if(_entityComponents[id] == null)
+            _entityComponents[id] = new List<int>();
+
         int gen = GetEntityGeneration(id);
         return new Entity(id, gen);
     }
     
-    // TODO: Make all components that the entity has removed from their component pool.
     public void DestroyEntity(Entity entity)
     {
         if (!IsAlive(entity))
@@ -155,9 +166,6 @@ public class EntitiesManager
         
         // ComponentPool should have already checked if the entity is alive by this point.
         
-        if(_entityComponents[eid] == null)
-            _entityComponents[eid] = new List<int>();
-        
         _entityComponents[eid].Add(componentID);
     }
     
@@ -171,7 +179,7 @@ public class EntitiesManager
     {
         int eid = entity.ID;
         
-        // ComponentPool should have already checked if the entity is alive by this point, and the List should not be null when attempting to remove component.
+        // ComponentPool should have already checked if the entity is alive by this point.
         
         _entityComponents[eid].Remove(componentID);
     }
