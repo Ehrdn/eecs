@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.ComponentModel;
 using System.Collections.ObjectModel;
+using System.Runtime.InteropServices;
 
 namespace EECS.Core.Components;
 
@@ -79,7 +80,7 @@ internal class PagedArray
 }
 
 /// <summary>
-/// Manages the logic of a single type of Component.
+/// Manages the storage of a single type of Component.
 /// </summary>
 /// <typeparam name="T">The component type.</typeparam>
 public class ComponentPool<T> : IComponentPool where T : struct
@@ -97,6 +98,7 @@ public class ComponentPool<T> : IComponentPool where T : struct
     
     /// <summary>
     /// Stores indexes in dense table. If -1, means it doesn't exist.
+    /// Using Paged array for future serialization implementation where the Entity ID is not consecutive.
     /// </summary>
 	private PagedArray _sparse;
     /// <summary>
@@ -171,6 +173,18 @@ public class ComponentPool<T> : IComponentPool where T : struct
         AddToEntity(entity, new T());
     }
 
+    /// <summary>
+    /// Get the reference of this component of target entity.
+    /// It is unsafe to access the saved reference if any component add or remove of this type happen.
+    /// However, you can safely save the whole ComponentPool object.
+    /// </summary>
+    /// <param name="entity"></param>
+    /// <returns></returns>
+    public ref T GetComponentRef(Entity entity)
+    {
+        return ref CollectionsMarshal.AsSpan<T>(_dense)[GetDenseIndex(entity)];
+    }
+    
     public T GetComponent(Entity entity)
     {
         return _dense[GetDenseIndex(entity)];
@@ -182,27 +196,21 @@ public class ComponentPool<T> : IComponentPool where T : struct
     }
 
     /// <summary>
-    /// Get or set the resoecutve entity's component.
+    /// Get the reference of the component of target entity.
+    /// It is unsafe to access the saved reference if any component add or remove of this type happen.
+    /// You can still save the ComponentPool object and safely access [] anytime.
     /// The entity must have the component first. Use AddToEntity() to add a component to an entity, and RemoveFromEntity() to remove it.
     /// </summary>
     /// <param name="entity"></param>
     /// <returns></returns>
-    public T this[Entity entity]
+    public ref T this[Entity entity]
     {
-        get => GetComponent(entity);
-        set => SetComponent(entity, value);
+        get => ref GetComponentRef(entity);
     }
 
     public void RemoveFromEntity(Entity entity)
     {
-        if(!EntityHasComponent(entity))
-            throw new InvalidOperationException(
-                entity + $" doesn't have component {typeof(T).FullName}."
-            );
-        if(!_entitiesManager.IsAlive(entity))
-            throw new ArgumentException(entity + "is not alive."); 
-
-        int denseIndex = _sparse[entity.ID];
+        int denseIndex = GetDenseIndex(entity);
         int lastIndex = _dense.Count - 1;
 
         if(denseIndex != lastIndex)

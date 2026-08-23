@@ -10,70 +10,146 @@ using System.Collections;
 
 namespace EECS.Core.Components;
 
+/// <summary>
+/// Returns an IEnumerable that iterates through all the entities with the Components of .With, and without .Without.
+/// You can save Query instance using .AsSaved() for better performance.
+/// Do not call any method that modify the Query instance while iterating entities through Execute().
+/// </summary>
 public class Query
 {
-    private readonly Type[] _types;
-    private readonly int[] _typeIDs;
-    public ReadOnlyCollection<Type> Types;
     public readonly World OfWorld;
-    private readonly ComponentsManager _componentsManager;
-    private IComponentPool[] _pools;
+    private readonly ComponentsManager _components;
+    
+    private readonly List<int> _withTypes;
+    private readonly List<int> _withoutTypes;
+    private readonly List<IComponentPool> _withPools;
+    private readonly List<IComponentPool> _withoutPools;
+    
+    /// <summary>
+    /// Whether or not this Query instance is saved and reused.
+    /// Only affects optimization.
+    /// If true, this instance will update its minimum entity pool everytime its Execute() is called.
+    /// You can also use MinPoolUpdated() to trigger a min entity pool update.
+    /// </summary>
+    public bool Saved;
+    /// <summary>
+    /// Updated at every .With(), and will update at Execute() if Saved is true.
+    /// </summary>
+    private int _minPoolIndex;
 
-    public Query(Type[] types) : this(World.DefaultWorld!, types) { }
-
-    public Query(World world, Type[] types)
+    public Query(World world)
     {
+        _withTypes = [];
+        _withoutTypes = [];
         OfWorld = world;
-        _componentsManager = world.Components;
+        _components = OfWorld.Components;
+        _withPools = [];
+        _withoutPools = [];
+        Saved = false;
+        _minPoolIndex = 0;
+    }
+    
+    public Query() : this(World.DefaultWorld!) { }
 
-        _types = new Type[types.Length];
-        Types = _types.AsReadOnly();
-        _typeIDs = new int[types.Length];
-        _pools = new IComponentPool[types.Length];
-        for(int i = 0; i < types.Length; i++)
-        {
-            _types[i] = types[i];
-            _typeIDs[i] = ComponentsManager.ComponentTypeIDs[types[i]];
-            _pools[i] = _componentsManager.GetSet(_typeIDs[i]);
-        }
+    public Query AsSaved()
+    {
+        Saved = true;
+        return this;
     }
 
-    internal IEnumerable<Entity> Execute(int minTypeIndex)
+    /// <summary>
+    /// Modify the Query instance to make entities require having Component of Type T to be iterated by the Query.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns>This instance.</returns>
+    public Query With<T>() where T : struct
     {
-        // Type minType = _types[minTypeIndex];
-        // int minTypeID = _typeIDs[minTypeIndex];
+        int compID = ComponentsManager.ComponentTypeIDs[typeof(T)];
+        _withTypes.Add(compID);
+        _withPools.Add(_components.GetSet(compID));
+
+        int minPoolCount = _withPools[_minPoolIndex].Count;
+        int curPoolCount = _withPools[_withPools.Count - 1].Count;
+        _minPoolIndex = curPoolCount < minPoolCount ? _withPools.Count - 1 : _minPoolIndex;
         
-        foreach(Entity entity in _pools[minTypeIndex].GetEntities())
+        return this;
+    }
+
+    /// <summary>
+    /// Modify the Query instance to exclude entity with Component of Type T from the Query.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns>This instance.</returns>
+    public Query Without<T>() where T : struct
+    {
+        int compID = ComponentsManager.ComponentTypeIDs[typeof(T)];
+        _withoutTypes.Add(compID);
+        _withoutPools.Add(_components.GetSet(compID));
+        return this;
+    }
+
+    /// <summary>
+    /// Modify the Query to notify the ECS that during the iteration of this Query, information of Component Type T might be accessed.
+    /// Not implemented. Some future feature may require writing this.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns>This instance.</returns>
+    public Query Optional<T>() where T : struct
+    {
+        return this;
+    }
+
+    private void UpdateMinPoolIndex()
+    {
+        for(int i = 0; i < _withTypes.Count; i++)
         {
-            bool entityHasAllComponents = true;
-            for(int i = 0; i < _types.Length; i++)
+            int minPoolCount = _withPools[_minPoolIndex].Count;
+            int curPoolCount = _withPools[i].Count;
+            _minPoolIndex = curPoolCount < minPoolCount ? i : _minPoolIndex;
+        }
+    }
+    public Query MinPoolUpdated()
+    {
+        UpdateMinPoolIndex();
+        return this;
+    }
+
+    public IEnumerable<Entity> Execute()
+    {
+        if(_withPools.Count <= 0)
+            throw new InvalidOperationException(
+                "Query requires at least one component added by .With() before executing."
+            );
+        
+        if(Saved)
+            UpdateMinPoolIndex();
+        
+        foreach(Entity entity in _withPools[_minPoolIndex].GetEntities())
+        {
+            bool entityQualify = true;
+
+            for(int i = 0; i < _withTypes.Count; i++)
             {
-                if(i == minTypeIndex) continue;
-                if(!_pools[i].EntityHasComponent(entity))
+                if(!_withPools[i].EntityHasComponent(entity))
                 {
-                    entityHasAllComponents = false;
+                    entityQualify = false;
                     break;
                 }
             }
-            if(entityHasAllComponents) yield return entity;
+            if(!entityQualify) continue;
+
+            for(int i = 0; i < _withoutTypes.Count; i++)
+            {
+                if(_withoutPools[i].EntityHasComponent(entity))
+                {
+                    entityQualify = false;
+                    break;
+                }
+            }
+            if(!entityQualify) continue;
+
+            yield return entity;
         }
-    }
-    internal int GetMinEntityCountTypeIndex()
-    {
-        int minTypeIndex = 0;
-        int minCount = _pools[0].Count;
-        for(int i = 1; i < _types.Length; i++)
-        {
-            int entCount = _pools[i].Count;
-            minTypeIndex = entCount < minCount ? i : minTypeIndex;
-            minCount = entCount < minCount ? entCount : minCount;
-        }
-        return minTypeIndex;
-    }
-    public IEnumerable<Entity> Execute()
-    {
-        int minTypeIndex = GetMinEntityCountTypeIndex();
-        return Execute(minTypeIndex);
     }
 
     /// <summary>
@@ -82,11 +158,6 @@ public class Query
     /// <returns></returns>
     public List<Entity> ExecuteSnapshot()
     {
-        int minTypeIndex = GetMinEntityCountTypeIndex();
-        int minTypeEntityCount = _pools[minTypeIndex].Count;
-        List<Entity> list = new List<Entity>();
-        foreach(Entity entity in Execute(minTypeIndex))
-            list.Add(entity);
-        return list;
+        return Execute().ToList();
     }
 }

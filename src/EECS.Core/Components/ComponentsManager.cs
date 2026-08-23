@@ -102,7 +102,12 @@ public class ComponentsManager
 
     public T Get<T>(Entity entity) where T : struct
     {
-        return GetSet<T>()[entity];
+        return GetSet<T>().GetComponent(entity);
+    }
+
+    public ref T GetRef<T>(Entity entity) where T : struct
+    {
+        return ref GetSet<T>()[entity];
     }
 
     public void Set<T>(Entity entity, T component) where T : struct
@@ -130,9 +135,7 @@ public class ComponentsManager
     }
 
     /// <summary>
-    /// Alternative API to get the ComponentPool and manipulate components from there.
-    /// And also the ComponentPool lets you Get and Set the component from it by using componentsManager.GetSet<ComponentType>()[entity].
-    /// The pun is gone :( .
+    /// Returns a component pool.
     /// </summary>
     /// <typeparam name="T">Type of the component.</typeparam>
     /// <returns>Returns a ComponentPool object to manipulate the component with.</returns>
