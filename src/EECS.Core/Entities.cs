@@ -79,7 +79,7 @@ public class EntitiesManager
     /// </summary>
     private List<int>[] _entityComponents;
 
-    public ReadOnlyCollection<int>? GetEntityComponentIDs(Entity entity)
+    public IReadOnlyList<int>? GetEntityComponentIDs(Entity entity)
     {
         if(!IsAlive(entity))
             return null;
@@ -108,7 +108,7 @@ public class EntitiesManager
         
         // Remove all components of the entity from component pools.
         foreach(int cid in _entityComponents[entity.ID])
-            _componentsManager.GetSet(cid).EntityDestoryed(entity);
+            _componentsManager.GetSet(cid).EntityDestroyed(entity);
         _entityComponents[entity.ID].Clear();
 
         if(!_generations.ContainsKey(entity.ID))

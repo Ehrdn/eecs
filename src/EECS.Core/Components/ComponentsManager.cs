@@ -19,8 +19,8 @@ public class ComponentsManager
     private static Type[] _componentTypes;
     private static Dictionary<Type, int> _componentTypeIDs;
     
-    public static IReadOnlyList<Type> ComponentTypes => _componentTypes;
-    public static IReadOnlyDictionary<Type, int> ComponentTypeIDs => _componentTypeIDs;
+    public readonly static IReadOnlyList<Type> ComponentTypes;
+    public readonly static IReadOnlyDictionary<Type, int> ComponentTypeIDs;
     public readonly int MaxEntityID;
     public readonly World OfWorld;
 
@@ -58,6 +58,9 @@ public class ComponentsManager
         _componentTypeIDs = new Dictionary<Type, int>();
         for (int i = 0; i < _componentTypes.Length; i++)
             _componentTypeIDs[_componentTypes[i]] = i;
+
+        ComponentTypes = _componentTypes.AsReadOnly();
+        ComponentTypeIDs = _componentTypeIDs.AsReadOnly();
     }
 
     public ComponentsManager(World world, int maxEntityID)

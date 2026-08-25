@@ -24,10 +24,10 @@ public interface IComponentPool
     bool EntityHasComponent(Entity entity);
     void RemoveFromEntity(Entity entity);
     void AddToEntity(Entity entity);
-    internal void EntityDestoryed(Entity entity);
+    internal void EntityDestroyed(Entity entity);
     internal void Reset();
     internal void Free();
-    ReadOnlyCollection<Entity> GetEntities();
+    IReadOnlyList<Entity> GetEntities();
 }
 
 
@@ -94,7 +94,8 @@ public class ComponentPool<T> : IComponentPool where T : struct
     /// Also Starts from 0.
     /// </summary>
     private List<Entity> _entities;
-    ReadOnlyCollection<Entity> IComponentPool.GetEntities() => _entities.AsReadOnly();
+    public IReadOnlyList<Entity> Entities;
+    IReadOnlyList<Entity> IComponentPool.GetEntities() => Entities;
     
     /// <summary>
     /// Stores indexes in dense table. If -1, means it doesn't exist.
@@ -129,6 +130,7 @@ public class ComponentPool<T> : IComponentPool where T : struct
 
 		_dense = new List<T>();
 		_entities = new List<Entity>();
+        Entities = _entities.AsReadOnly();
 		_sparse = new PagedArray(maxID + 1, sparseArrayPageSize);
 	}
 
@@ -156,9 +158,12 @@ public class ComponentPool<T> : IComponentPool where T : struct
 
     public void AddToEntity(Entity entity, T comp)
     {
+        if(!_entitiesManager.IsAlive(entity))
+            throw new ArgumentException($"{entity} is not alive.");
+        
         if(EntityHasComponent(entity))
             throw new InvalidOperationException(
-                entity + $" already has component {typeof(T).FullName}."
+                $"{entity} already has component {typeof(T).FullName}."
             );
         
         // int denseIndex = _sparse[entity.ID];
@@ -233,7 +238,7 @@ public class ComponentPool<T> : IComponentPool where T : struct
     /// Unchecked and untracked remove component from entity.
     /// </summary>
     /// <param name="entity"></param>
-    void IComponentPool.EntityDestoryed(Entity entity)
+    void IComponentPool.EntityDestroyed(Entity entity)
     {
         int denseIndex = _sparse[entity.ID];
         int lastIndex = _dense.Count - 1;

@@ -31,9 +31,9 @@ public class Query
     /// If true, this instance will update its minimum entity pool everytime its Execute() is called.
     /// You can also use MinPoolUpdated() to trigger a min entity pool update.
     /// </summary>
-    public bool Saved;
+    public bool IsSaved { get; private set; }
     /// <summary>
-    /// Updated at every .With(), and will update at Execute() if Saved is true.
+    /// Updated at every .With(), and will update at Execute() if IsSaved is true.
     /// </summary>
     private int _minPoolIndex;
 
@@ -45,7 +45,7 @@ public class Query
         _components = OfWorld.Components;
         _withPools = [];
         _withoutPools = [];
-        Saved = false;
+        IsSaved = false;
         _minPoolIndex = 0;
     }
     
@@ -53,7 +53,7 @@ public class Query
 
     public Query AsSaved()
     {
-        Saved = true;
+        IsSaved = true;
         return this;
     }
 
@@ -121,7 +121,7 @@ public class Query
                 "Query requires at least one component added by .With() before executing."
             );
         
-        if(Saved)
+        if(IsSaved)
             UpdateMinPoolIndex();
         
         foreach(Entity entity in _withPools[_minPoolIndex].GetEntities())
