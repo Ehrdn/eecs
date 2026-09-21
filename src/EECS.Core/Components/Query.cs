@@ -17,6 +17,10 @@ namespace EECS.Core.Components;
 /// </summary>
 public class Query
 {
+    /// <summary>
+    /// Default World for Initializing Query instances that don't specify a World.
+    /// </summary>
+    public static World? DefaultWorld { get; set; }
     public readonly World OfWorld;
     private readonly ComponentsManager _components;
     
@@ -49,7 +53,7 @@ public class Query
         _minPoolIndex = 0;
     }
     
-    public Query() : this(World.DefaultWorld!) { }
+    public Query() : this(DefaultWorld!) { }
 
     public Query AsSaved()
     {

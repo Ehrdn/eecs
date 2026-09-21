@@ -12,13 +12,9 @@ namespace EECS.Core;
 /// <summary>
 /// World and World management.
 /// </summary>
-public class World : IDisposable
+public partial class World : IDisposable
 {
-	/// <summary>
-	/// Default / Current World for any method that requires a World but has an version that omits World for simplicity.
-	/// </summary>
-	public static World? DefaultWorld { get; set; }
-	public static int DefaultMaxEntityID { get; set; } = 100000;
+	public static int DefaultMaxEntityID { get; set; } = 1000000;
 
 	public static int Count { get; private set; } = 0;
 	

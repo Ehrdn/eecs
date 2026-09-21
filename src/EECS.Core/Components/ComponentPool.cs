@@ -22,8 +22,10 @@ public interface IComponentPool
     int Count { get; }
 
     bool EntityHasComponent(Entity entity);
-    void RemoveFromEntity(Entity entity);
     void AddToEntity(Entity entity);
+    void RemoveFromEntity(Entity entity);
+    void SetComponent(Entity entity, object component);
+    object GetComponent(Entity entity);
     internal void EntityDestroyed(Entity entity);
     internal void Reset();
     internal void Free();
@@ -135,7 +137,8 @@ public class ComponentPool<T> : IComponentPool where T : struct
 	}
 
     /// <summary>
-    /// Get dense index, and make sure that the entity is alive and has the component.
+    /// Get dense index.
+    /// Throws exception if the entity is alive and has the component.
     /// </summary>
     /// <param name="entity"></param>
     /// <returns></returns>
@@ -193,6 +196,18 @@ public class ComponentPool<T> : IComponentPool where T : struct
     public T GetComponent(Entity entity)
     {
         return _dense[GetDenseIndex(entity)];
+    }
+
+    object IComponentPool.GetComponent(Entity entity)
+    {
+        return GetComponent(entity);
+    }
+
+    public void SetComponent(Entity entity, object component)
+    {
+        if(component is not T comp)
+            throw new ArgumentException($"Component is not of type {typeof(T).FullName}");
+        SetComponent(entity, comp);
     }
 
     public void SetComponent(Entity entity, T component)

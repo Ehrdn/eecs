@@ -149,6 +149,8 @@ public class ComponentPoolTests
 
         posPool.AddToEntity(a);
         velPool.AddToEntity(a);
+        animPool.AddToEntity(a);
+        animPool.RemoveFromEntity(a);
 
         posPool.AddToEntity(b);
         animPool.AddToEntity(b);

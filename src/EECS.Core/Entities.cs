@@ -59,7 +59,7 @@ public readonly struct Entity : IEquatable<Entity>
 /// <summary>
 /// Instance belongs to a World.
 /// </summary>
-public class EntitiesManager
+public partial class EntitiesManager
 {
     public readonly World OfWorld;
     private ComponentsManager _componentsManager => OfWorld.Components;

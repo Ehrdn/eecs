@@ -14,7 +14,7 @@ public sealed class ComponentAttribute : System.Attribute
 /// <summary>
 /// Instance belongs to a World.
 /// </summary>
-public class ComponentsManager
+public partial class ComponentsManager
 {
     private static Type[] _componentTypes;
     private static Dictionary<Type, int> _componentTypeIDs;
@@ -154,16 +154,5 @@ public class ComponentsManager
     public IComponentPool GetSet(Type type)
     {
         return _pools[_componentTypeIDs[type]];
-    }
-
-    // TODO
-    public string SerializeEntities()
-    {
-        return "";
-    }
-
-    public void DeserializeEntities(string s)
-    {
-        
     }
 }
