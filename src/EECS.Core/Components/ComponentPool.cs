@@ -85,7 +85,7 @@ internal class PagedArray
 /// Manages the storage of a single type of Component.
 /// </summary>
 /// <typeparam name="T">The component type.</typeparam>
-public class ComponentPool<T> : IComponentPool where T : struct
+public partial class ComponentPool<T> : IComponentPool where T : struct
 {
     /// <summary>
     /// Dense array for component. Starts from 0.

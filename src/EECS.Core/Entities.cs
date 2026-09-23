@@ -10,8 +10,8 @@ namespace EECS.Core;
 
 /// <summary>
 /// Entity.
-/// Entities belongs to a World, but they don't store it.
-/// Who it belongs to depends on the World.
+/// Entities belongs to a World, but they don't store the world they belong.
+/// User should make sure the Entities come from a World only be used in that World.
 /// </summary>
 public readonly struct Entity : IEquatable<Entity>
 {

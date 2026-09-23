@@ -36,11 +36,3 @@ namespace EECS.Core
         }
     }
 }
-
-namespace EECS.Core.Components
-{
-    public partial class ComponentsManager
-    {
-        
-    }
-}
