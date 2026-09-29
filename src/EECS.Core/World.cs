@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.Design.Serialization;
 using System.Diagnostics.Contracts;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 using EECS.Core.Components;
 
@@ -12,7 +13,7 @@ namespace EECS.Core;
 /// <summary>
 /// World and World management.
 /// </summary>
-public partial class World : IDisposable
+public partial class World
 {
 	public static int DefaultMaxEntityID { get; set; } = 1000000;
 
@@ -21,31 +22,20 @@ public partial class World : IDisposable
 	/// <summary>
 	/// World ID. Won't be reused. (What would you need 2.1B World for anyway??)
 	/// </summary>
-	public int ID { get; set; }
-	public string Name { get; private set; }
-	
+	public int ID { get; set; }	
 	public readonly EntitiesManager Entities;
 	public readonly ComponentsManager Components;
 
-	public World(string name, int maxEntityID)
+	public World(int maxEntityID)
 	{
-		Name = name;
 		ID = Count++;
 		Entities = new EntitiesManager(this, maxEntityID);
 		Components = new ComponentsManager(this, maxEntityID);
 	}
 
-	public World(string name) : this(name, DefaultMaxEntityID) { }
+	public World() : this(DefaultMaxEntityID) { }
 
-	public void Dispose()
-	{
-		Entities.Free();
-		Components.Free();
-		
-		GC.SuppressFinalize(this);
-	}
-
-	public void Reset()
+	public virtual void Reset()
 	{
 		Entities.Reset();
 		Components.Reset();

@@ -2,36 +2,23 @@
 using EECS.Core;
 using EECS.Core.Components;
 using System.ComponentModel;
+using System.Net.Http.Headers;
 
 namespace EECS.Godot;
 
 public class GodotWorld : World
 {
-    public readonly NodeManager Nodes;
-	public GodotWorld(string name, int maxEntityID) : base(name, maxEntityID)
+    public NodeBindsManager NodeBinds;
+    public NodeSyncManager NodeSyncs;
+    public GodotWorld() : this(World.DefaultMaxEntityID) {}
+    public GodotWorld(int maxEntityID) : base(maxEntityID)
     {
-        Nodes = new NodeManager();
+        NodeBinds = new NodeBindsManager(this);
+        NodeSyncs = new NodeSyncManager(this);
     }
-
-}
-
-public class NodeManager
-{
-    private Dictionary<Entity, Node> _entityToNode;
-    private Dictionary<Node, Entity> _nodeToEntity;
-    public NodeManager()
+    public override void Reset()
     {
-        _entityToNode = new();
-        _nodeToEntity = new();
-    }
-
-    public Entity GetEntity(Node node)
-    {
-        
-    }
-
-    public void BindNode(Node node, Entity entity)
-    {
-        _entityToNode.Add(entity, node);
+        base.Reset();
+        NodeBinds.Reset();
     }
 }

@@ -145,17 +145,7 @@ public partial class EntitiesManager
     }
 
     /// <summary>
-    /// It's like... Dispose(), but internal.
-    /// </summary>
-    internal void Free()
-    {
-        _generations = null!;
-        _availableIDs = null!;
-        _entityComponents = null!;
-    }
-
-    /// <summary>
-    /// Registering that an entity has just been added a component.
+    /// Registering that an entity has just added a component.
     /// Only expected to be called by ComponentPool.
     /// </summary>
     /// <param name="entity"></param>
@@ -170,7 +160,7 @@ public partial class EntitiesManager
     }
     
     /// <summary>
-    /// Registering that an entity has just been removed a component.
+    /// Registering that an entity has just removed a component.
     /// Only expected to be called by ComponentPool.
     /// </summary>
     /// <param name="entity"></param>

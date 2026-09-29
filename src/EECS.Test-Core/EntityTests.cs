@@ -84,13 +84,13 @@ public class EntitiesManagerTests
     [SetUp]
     public void Setup()
     {
-        _world = new World("EntityTestsWorld");
+        _world = new World();
     }
 
     [TearDown]
     public void TearDown()
     {
-        _world.Dispose();
+        
     }
 
     [Test]

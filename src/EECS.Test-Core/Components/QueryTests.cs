@@ -15,7 +15,7 @@ public class QueryTests
     [SetUp]
     public void Setup()
     {
-        _world = new World("QueryTests");
+        _world = new World();
         _entities = _world.Entities;
         _components = _world.Components;
     }
@@ -23,7 +23,7 @@ public class QueryTests
     [TearDown]
     public void TearDown()
     {
-        _world.Dispose();
+        
     }
 
     [Test]

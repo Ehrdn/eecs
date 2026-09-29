@@ -28,7 +28,6 @@ public interface IComponentPool
     object GetComponent(Entity entity);
     internal void EntityDestroyed(Entity entity);
     internal void Reset();
-    internal void Free();
     IReadOnlyList<Entity> GetEntities();
 }
 
@@ -286,15 +285,5 @@ public partial class ComponentPool<T> : IComponentPool where T : struct
         _dense.Clear();
         _entities.Clear();
         _sparse = new PagedArray(MaxID + 1, SparseArrayPageSize);
-    }
-
-    /// <summary>
-    /// Dispose(), but internal.
-    /// </summary>
-    void IComponentPool.Free()
-    {
-        _dense = null!;
-        _sparse = null!;
-        _entities = null!;
     }
 }

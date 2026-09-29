@@ -58,13 +58,13 @@ public class ComponentPoolTests
     [SetUp]
     public void Setup()
     {
-        _world = new World("ComponentPoolTestsWorld");
+        _world = new World();
     }
 
     [TearDown]
     public void TearDown()
     {
-        _world.Dispose();
+        
     }
 
     [Test]

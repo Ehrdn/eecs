@@ -24,7 +24,7 @@ public partial class ComponentsManager
     public readonly int MaxEntityID;
     public readonly World OfWorld;
 
-    private IComponentPool[] _pools;
+    private readonly IComponentPool[] _pools;
 
     /// <summary>
     /// Get all struct with ComponentAttribute and store them to _componentTypes and _componentTypeIDs.
@@ -67,13 +67,13 @@ public partial class ComponentsManager
     {
         OfWorld = world;
         MaxEntityID = maxEntityID;
+        _pools = new IComponentPool[_componentTypes.Length];
         SetupComponentPools();
     }
 
-    [MemberNotNull(nameof(_pools))]
+    // [MemberNotNull(nameof(_pools))]
     private void SetupComponentPools()
     {
-        _pools = new IComponentPool[_componentTypes.Length];
         for(int i = 0; i < _componentTypes.Length; i++)
         {
             Type poolType = typeof(ComponentPool<>).MakeGenericType(_componentTypes[i]);
@@ -95,12 +95,6 @@ public partial class ComponentsManager
     {
         foreach (var pool in _pools)
             pool.Reset();
-    }
-
-    internal void Free()
-    {
-        foreach (var pool in _pools)
-            pool.Free();
     }
 
     public T Get<T>(Entity entity) where T : struct

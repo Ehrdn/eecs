@@ -12,7 +12,7 @@ namespace EECS.Core.Components;
 
 /// <summary>
 /// Returns an IEnumerable that iterates through all the entities with the Components of .With, and without .Without.
-/// You can save Query instance using .AsSaved() for better performance.
+/// You can save Query instance using .AsSaved() for better performance when reusing Query instances.
 /// Do not call any method that modify the Query instance while iterating entities through Execute().
 /// </summary>
 public class Query
@@ -36,6 +36,7 @@ public class Query
     /// You can also use MinPoolUpdated() to trigger a min entity pool update.
     /// </summary>
     public bool IsSaved { get; private set; }
+    
     /// <summary>
     /// Updated at every .With(), and will update at Execute() if IsSaved is true.
     /// </summary>

@@ -58,15 +58,14 @@ public class PrototypeTests
     [SetUp]
     public void Setup()
     {
-        _world = new World("PrototypeTestsWorld");
-        _prototypeWorld = new World("PrototypeWorld");
+        _world = new World();
+        _prototypeWorld = new World();
     }
 
     [TearDown]
     public void TearDown()
     {
-        _world.Dispose();
-        _prototypeWorld.Dispose();
+        
     }
 
     [Test]
