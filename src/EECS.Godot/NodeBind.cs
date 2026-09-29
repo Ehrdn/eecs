@@ -10,7 +10,7 @@ namespace EECS.Godot;
 /// This component exists purely for filtering nodes with the ability to bind with entities in Query.
 /// Access whether or not it is binded with a node through `NodeBindsManager` in `GodotWorld`.
 /// </summary>
-[Component]
+[Component("Godot.NodeBind")]
 public struct NodeBind
 {
     internal Node? BindedNode;

@@ -3,52 +3,9 @@ using EECS.Core;
 using EECS.Core.Components;
 using NUnit.Framework.Interfaces;
 
+using EECS.Test_Core;
+
 namespace EECS.Test_Core.Components;
-
-[Component]
-struct Position
-{
-    public int X, Y, Z;
-    public Position()
-    {
-        X = Y = Z = 0;
-    }
-    public Position(int x, int y, int z)
-    {
-        X = x;
-        Y = y;
-        Z = z;
-    }
-}
-[Component]
-struct Velocity
-{
-    public int X, Y, Z;
-    public Velocity()
-    {
-        X = Y = Z = 0;
-    }
-    public Velocity(int x, int y, int z)
-    {
-        X = x;
-        Y = y;
-        Z = z;
-    }
-}
-[Component]
-struct AnimationProgress
-{
-    public int Frame;
-    public AnimationProgress()
-    {
-        Frame = 0;
-    }
-    public AnimationProgress(int frame)
-    {
-        Frame = frame;
-    }
-}
-
 [TestFixture]
 public class ComponentPoolTests
 {

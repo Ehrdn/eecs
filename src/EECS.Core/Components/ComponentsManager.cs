@@ -8,7 +8,11 @@ namespace EECS.Core.Components;
 [AttributeUsage(AttributeTargets.Struct, Inherited = false)]
 public sealed class ComponentAttribute : System.Attribute
 {
-    public ComponentAttribute() { }
+    string name;
+    public ComponentAttribute(string name)
+    {
+        this.name = name;
+    }
 }
 
 /// <summary>

@@ -9,7 +9,7 @@ namespace EECS.Godot;
 /// <summary>
 /// 
 /// </summary>
-[Component]
+[Component("Godot.NodeSync")]
 public struct NodeSync
 {
     PackedScene TargetScene;

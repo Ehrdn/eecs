@@ -89,13 +89,13 @@ public partial class ComponentPool<T> : IComponentPool where T : struct
     /// <summary>
     /// Dense array for component. Starts from 0.
     /// </summary>
-	private List<T> _dense;
+	private readonly List<T> _dense;
 	/// <summary>
     /// Dense array for entities, corresponds to dense[].
     /// Also Starts from 0.
     /// </summary>
-    private List<Entity> _entities;
-    public IReadOnlyList<Entity> Entities;
+    private readonly List<Entity> _entities;
+    public readonly IReadOnlyList<Entity> Entities;
     IReadOnlyList<Entity> IComponentPool.GetEntities() => Entities;
     
     /// <summary>
