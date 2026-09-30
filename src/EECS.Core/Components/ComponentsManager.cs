@@ -1,17 +1,23 @@
-using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace EECS.Core.Components;
 
 /// <summary>
 /// Attach this to struct that should be components.
+/// Does not support Generic types.
 /// </summary>
 [AttributeUsage(AttributeTargets.Struct, Inherited = false)]
 public sealed class ComponentAttribute : System.Attribute
 {
-    string name;
+    public string? Name;
     public ComponentAttribute(string name)
     {
-        this.name = name;
+        Name = name;
+    }
+    public ComponentAttribute()
+    {
+        Name = null;
     }
 }
 
@@ -20,18 +26,24 @@ public sealed class ComponentAttribute : System.Attribute
 /// </summary>
 public partial class ComponentsManager
 {
-    private static Type[] _componentTypes;
-    private static Dictionary<Type, int> _componentTypeIDs;
-    
+    private static readonly Type[] _componentTypes;
+    private static readonly Dictionary<Type, int> _componentIDByType;
+    private static readonly Dictionary<string, int> _componentIDByName;
+    private static readonly Dictionary<string, Type> _componentTypeByName;
+    private static readonly Dictionary<Type, string> _componentNameByType;
+
     public readonly static IReadOnlyList<Type> ComponentTypes;
-    public readonly static IReadOnlyDictionary<Type, int> ComponentTypeIDs;
+    public readonly static IReadOnlyDictionary<Type, int> ComponentIDByType;
+    public readonly static IReadOnlyDictionary<string, int> ComponentIDByName;
+    public readonly static IReadOnlyDictionary<string, Type> ComponentTypeByName;
+    public readonly static IReadOnlyDictionary<Type, string> ComponentNameByType;
     public readonly int MaxEntityID;
     public readonly World OfWorld;
 
     private readonly IComponentPool[] _pools;
 
     /// <summary>
-    /// Get all struct with ComponentAttribute and store them to _componentTypes and _componentTypeIDs.
+    /// Get all struct with ComponentAttribute and store them to _componentTypes and _componentIDByType.
     /// </summary>
     static ComponentsManager()
     {
@@ -59,12 +71,48 @@ public partial class ComponentsManager
             .OrderBy(t => t.AssemblyQualifiedName)
             .ToArray();
 
-        _componentTypeIDs = new Dictionary<Type, int>();
-        for (int i = 0; i < _componentTypes.Length; i++)
-            _componentTypeIDs[_componentTypes[i]] = i;
+        var explicitComponentNames = new Dictionary<Type, string>();
+        foreach (var componentType in _componentTypes)
+        {
+            var attribute = componentType
+                .GetCustomAttributes(typeof(ComponentAttribute), true)
+                .Cast<ComponentAttribute>()
+                .FirstOrDefault();
 
+            if (attribute != null && !string.IsNullOrWhiteSpace(attribute.Name))
+                explicitComponentNames[componentType] = attribute.Name;
+        }
+
+        _componentIDByType = new Dictionary<Type, int>();
+        for (int i = 0; i < _componentTypes.Length; i++)
+            _componentIDByType[_componentTypes[i]] = i;
+
+        _componentIDByName = new Dictionary<string, int>();
+        _componentNameByType = new Dictionary<Type, string>();
+        _componentTypeByName = new Dictionary<string, Type>();
+
+        foreach (var kvp in _componentIDByType)
+        {
+            Type type = kvp.Key;
+            string name;
+            if(!explicitComponentNames.TryGetValue(type, out name!))
+                // Component Type can't be a generic type, thus type.FullName cannot be null.
+                name = type.FullName!;
+            
+            // Repeated names.
+            if(_componentIDByName.ContainsKey(name))
+                throw new Exception(
+                    $"Component type {type.FullName} has the same string name ({name}) as another Component type {_componentTypes[_componentIDByName[name]]} .\nConsider using different explicit component name."
+                );
+            _componentIDByName[name] = kvp.Value;
+            _componentNameByType[type] = name!;
+            _componentTypeByName[name] = type;
+        }
         ComponentTypes = _componentTypes.AsReadOnly();
-        ComponentTypeIDs = _componentTypeIDs.AsReadOnly();
+        ComponentIDByType = _componentIDByType.AsReadOnly();
+        ComponentIDByName = _componentIDByName.AsReadOnly();
+        ComponentNameByType = _componentNameByType.AsReadOnly();
+        ComponentTypeByName = _componentTypeByName.AsReadOnly();
     }
 
     public ComponentsManager(World world, int maxEntityID)
@@ -122,7 +170,7 @@ public partial class ComponentsManager
     }
     public void Add<T>(Entity entity) where T : struct
     {
-        Add<T>(entity, new T());
+        Add<T>(entity, default);
     }
  
     public void Remove<T>(Entity entity) where T : struct
@@ -142,7 +190,7 @@ public partial class ComponentsManager
     /// <returns>Returns a ComponentPool object to manipulate the component with.</returns>
     public ComponentPool<T> GetSet<T>() where T : struct
     {
-        int cid = _componentTypeIDs[typeof(T)];
+        int cid = _componentIDByType[typeof(T)];
         return (ComponentPool<T>)_pools[cid];
     }
     public IComponentPool GetSet(int componentID)
@@ -151,6 +199,6 @@ public partial class ComponentsManager
     }
     public IComponentPool GetSet(Type type)
     {
-        return _pools[_componentTypeIDs[type]];
+        return _pools[_componentIDByType[type]];
     }
 }

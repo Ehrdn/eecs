@@ -62,6 +62,19 @@ public class Query
         return this;
     }
 
+    public Query With(Type componentType)
+    {
+        int compID = ComponentsManager.ComponentIDByType[componentType];
+        _withTypes.Add(compID);
+        _withPools.Add(_components.GetSet(compID));
+
+        int minPoolCount = _withPools[_minPoolIndex].Count;
+        int curPoolCount = _withPools[_withPools.Count - 1].Count;
+        _minPoolIndex = curPoolCount < minPoolCount ? _withPools.Count - 1 : _minPoolIndex;
+
+        return this;
+    }
+
     /// <summary>
     /// Modify the Query instance to make entities require having Component of Type T to be iterated by the Query.
     /// </summary>
@@ -69,14 +82,20 @@ public class Query
     /// <returns>This instance.</returns>
     public Query With<T>() where T : struct
     {
-        int compID = ComponentsManager.ComponentTypeIDs[typeof(T)];
-        _withTypes.Add(compID);
-        _withPools.Add(_components.GetSet(compID));
+        return With(typeof(T)); 
+    }
 
-        int minPoolCount = _withPools[_minPoolIndex].Count;
-        int curPoolCount = _withPools[_withPools.Count - 1].Count;
-        _minPoolIndex = curPoolCount < minPoolCount ? _withPools.Count - 1 : _minPoolIndex;
-        
+    public Query With(int componentTypeID)
+    {
+        Type componentType = ComponentsManager.ComponentTypes[componentTypeID];
+        return With(componentType);
+    }
+
+    public Query Without(Type componentType)
+    {
+        int compID = ComponentsManager.ComponentIDByType[componentType];
+        _withoutTypes.Add(compID);
+        _withoutPools.Add(_components.GetSet(compID));
         return this;
     }
 
@@ -87,12 +106,23 @@ public class Query
     /// <returns>This instance.</returns>
     public Query Without<T>() where T : struct
     {
-        int compID = ComponentsManager.ComponentTypeIDs[typeof(T)];
-        _withoutTypes.Add(compID);
-        _withoutPools.Add(_components.GetSet(compID));
-        return this;
+        return Without(typeof(T));
     }
 
+    public Query Without(int componentTypeID)
+    {
+        Type componentType = ComponentsManager.ComponentTypes[componentTypeID];
+        return Without(componentType);
+    }
+
+    public Query Optional(Type componentType)
+    {
+        return this;
+    }
+    public Query Optional(int componentTypeID)
+    {
+        return this;
+    }
     /// <summary>
     /// Modify the Query to notify the ECS that during the iteration of this Query, information of Component Type T might be accessed.
     /// Not implemented. Some future feature may require writing this.

@@ -3,6 +3,8 @@ using EECS.Core;
 using EECS.Core.Components;
 using NUnit.Framework.Interfaces;
 
+using EECS.Test_Core;
+
 namespace EECS.Test_Core.Components;
 
 [TestFixture]

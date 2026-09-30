@@ -25,6 +25,9 @@ public struct NodeSync
     public NodeSync() { }
 }
 
+[Component("Godot.NodeSyncLayer1")]
+public struct NodeSyncLayer1 { }
+
 public class NodeSyncManager
 {
     public GodotWorld OfWorld;

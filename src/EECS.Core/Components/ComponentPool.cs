@@ -120,7 +120,7 @@ public partial class ComponentPool<T> : IComponentPool where T : struct
     public readonly int SparseArrayPageSize;
 
     public Type ComponentType => typeof(T);
-    public int ComponentID => ComponentsManager.ComponentTypeIDs[ComponentType];
+    public int ComponentID => ComponentsManager.ComponentIDByType[ComponentType];
 
 	public ComponentPool(World world, int maxID, int sparseArrayPageSize = 4096)
 	{
@@ -177,7 +177,7 @@ public partial class ComponentPool<T> : IComponentPool where T : struct
     }
     public void AddToEntity(Entity entity)
     {
-        AddToEntity(entity, new T());
+        AddToEntity(entity, default);
     }
 
     /// <summary>

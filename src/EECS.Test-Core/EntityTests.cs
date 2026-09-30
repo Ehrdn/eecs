@@ -48,34 +48,6 @@ public class EntityTests
     }
 }
 
-[Component]
-struct Position
-{
-    public int X, Y, Z;
-    public Position()
-    {
-        X = Y = Z = 0;
-    }
-}
-[Component]
-struct Velocity
-{
-    public int X, Y, Z;
-    public Velocity()
-    {
-        X = Y = Z = 0;
-    }
-}
-[Component]
-struct AnimationProgress
-{
-    public int Frame;
-    public AnimationProgress()
-    {
-        Frame = 0;
-    }
-}
-
 public class EntitiesManagerTests
 {
     private World _world = null!;
@@ -187,9 +159,9 @@ public class EntitiesManagerTests
     {
         var a = _manager.CreateEntity();
         var b = _manager.CreateEntity();
-        int posID = ComponentsManager.ComponentTypeIDs[typeof(Position)];
-        int velID = ComponentsManager.ComponentTypeIDs[typeof(Velocity)];
-        int animID = ComponentsManager.ComponentTypeIDs[typeof(AnimationProgress)];
+        int posID = ComponentsManager.ComponentIDByType[typeof(Position)];
+        int velID = ComponentsManager.ComponentIDByType[typeof(Velocity)];
+        int animID = ComponentsManager.ComponentIDByType[typeof(AnimationProgress)];
 
         _world.Components.Add<Position>(a);
         _world.Components.Add<Position>(b);
@@ -215,9 +187,9 @@ public class EntitiesManagerTests
     {
         var a = _manager.CreateEntity();
         var b = _manager.CreateEntity();
-        int posID = ComponentsManager.ComponentTypeIDs[typeof(Position)];
-        int velID = ComponentsManager.ComponentTypeIDs[typeof(Velocity)];
-        int animID = ComponentsManager.ComponentTypeIDs[typeof(AnimationProgress)];
+        int posID = ComponentsManager.ComponentIDByType[typeof(Position)];
+        int velID = ComponentsManager.ComponentIDByType[typeof(Velocity)];
+        int animID = ComponentsManager.ComponentIDByType[typeof(AnimationProgress)];
 
         _world.Components.Add<Position>(a);
         _world.Components.Add<Position>(b);
