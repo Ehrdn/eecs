@@ -1,7 +1,4 @@
-using System.Diagnostics.CodeAnalysis;
 using EECS.Core.Components;
-using EECS.Core;
-
 
 namespace EECS.Core
 {

@@ -21,16 +21,23 @@ public sealed class ComponentAttribute : System.Attribute
     }
 }
 
+// TODO: Add a static method to register a closed generic type struct as a component type.
+
 /// <summary>
 /// Instance belongs to a World.
 /// </summary>
 public partial class ComponentsManager
 {
+    public delegate void ComponentAddedDelegate(World world, Entity entity, Type componentType);
+    public delegate void ComponentRemovedDelegate(World world, Entity entity, Type componentType);
+
     private static readonly Type[] _componentTypes;
     private static readonly Dictionary<Type, int> _componentIDByType;
     private static readonly Dictionary<string, int> _componentIDByName;
     private static readonly Dictionary<string, Type> _componentTypeByName;
     private static readonly Dictionary<Type, string> _componentNameByType;
+    internal static readonly Dictionary<Type, ComponentAddedDelegate> ComponentAddedDelegates;
+    internal static readonly Dictionary<Type, ComponentRemovedDelegate> ComponentRemovedDelegates;
 
     public readonly static IReadOnlyList<Type> ComponentTypes;
     public readonly static IReadOnlyDictionary<Type, int> ComponentIDByType;
@@ -102,7 +109,7 @@ public partial class ComponentsManager
             // Repeated names.
             if(_componentIDByName.ContainsKey(name))
                 throw new Exception(
-                    $"Component type {type.FullName} has the same string name ({name}) as another Component type {_componentTypes[_componentIDByName[name]]} .\nConsider using different explicit component name."
+                    $"Component type \"{type.FullName}\" has the same string name (\"{name}\") as another Component type \"{_componentTypes[_componentIDByName[name]]}\".\nConsider using different explicit component name."
                 );
             _componentIDByName[name] = kvp.Value;
             _componentNameByType[type] = name!;
@@ -113,6 +120,29 @@ public partial class ComponentsManager
         ComponentIDByName = _componentIDByName.AsReadOnly();
         ComponentNameByType = _componentNameByType.AsReadOnly();
         ComponentTypeByName = _componentTypeByName.AsReadOnly();
+
+        ComponentAddedDelegates = new Dictionary<Type, ComponentAddedDelegate>();
+        ComponentRemovedDelegates = new Dictionary<Type, ComponentRemovedDelegate>();
+    }
+
+    public static void RegisterComponentAddedDelegate<T>(ComponentAddedDelegate del) where T : struct
+    {
+        ComponentAddedDelegates[typeof(T)] = del;
+    }
+
+    public static void RemoveComponentAddedDelegate<T>() where T : struct
+    {
+        ComponentAddedDelegates.Remove(typeof(T));
+    }
+
+    public static void RegisterComponentRemovedDelegate<T>(ComponentRemovedDelegate del) where T : struct
+    {
+        ComponentRemovedDelegates[typeof(T)] = del;
+    }
+
+    public static void RemoveComponentRemovedDelegate<T>() where T : struct
+    {
+        ComponentRemovedDelegates.Remove(typeof(T));
     }
 
     public ComponentsManager(World world, int maxEntityID)
@@ -149,12 +179,12 @@ public partial class ComponentsManager
             pool.Reset();
     }
 
-    public T Get<T>(Entity entity) where T : struct
-    {
-        return GetSet<T>().GetComponent(entity);
-    }
+    // public T Get<T>(Entity entity) where T : struct
+    // {
+    //     return GetSet<T>().GetComponent(entity);
+    // }
 
-    public ref T GetRef<T>(Entity entity) where T : struct
+    public ref T Get<T>(Entity entity) where T : struct
     {
         return ref GetSet<T>()[entity];
     }

@@ -31,8 +31,8 @@ public struct NodeSyncLayer1 { }
 public class NodeSyncManager
 {
     public GodotWorld OfWorld;
-    private ComponentPool<NodeSync> _nodeSyncPool;
-    private ComponentPool<NodeBind> _nodeBindPool;
+    private readonly ComponentPool<NodeSync> _nodeSyncPool;
+    private readonly ComponentPool<NodeBind> _nodeBindPool;
     public NodeSyncManager(GodotWorld world)
     {
         OfWorld = world;

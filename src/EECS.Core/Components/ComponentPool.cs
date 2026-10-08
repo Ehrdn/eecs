@@ -31,7 +31,6 @@ public interface IComponentPool
     IReadOnlyList<Entity> GetEntities();
 }
 
-
 /// <summary>
 /// Paged array of int for Sparse Array inside of ComponentPool.
 /// </summary>
@@ -137,7 +136,7 @@ public partial class ComponentPool<T> : IComponentPool where T : struct
 
     /// <summary>
     /// Get dense index.
-    /// Throws exception if the entity is alive and has the component.
+    /// Throws exception if the entity is not alive or does not have the component.
     /// </summary>
     /// <param name="entity"></param>
     /// <returns></returns>
@@ -174,6 +173,9 @@ public partial class ComponentPool<T> : IComponentPool where T : struct
         _sparse[entity.ID] = Count - 1;
 
         _entitiesManager.TrackComponentAdd(entity, ComponentID);
+
+        if(ComponentsManager.ComponentAddedDelegates.TryGetValue(typeof(T), out var callback))
+            callback(OfWorld, entity, typeof(T));
     }
     public void AddToEntity(Entity entity)
     {
@@ -187,15 +189,15 @@ public partial class ComponentPool<T> : IComponentPool where T : struct
     /// </summary>
     /// <param name="entity"></param>
     /// <returns></returns>
-    public ref T GetComponentRef(Entity entity)
+    public ref T GetComponent(Entity entity)
     {
         return ref CollectionsMarshal.AsSpan<T>(_dense)[GetDenseIndex(entity)];
     }
     
-    public T GetComponent(Entity entity)
-    {
-        return _dense[GetDenseIndex(entity)];
-    }
+    // public T GetComponentNoRef(Entity entity)
+    // {
+    //     return _dense[GetDenseIndex(entity)];
+    // }
 
     object IComponentPool.GetComponent(Entity entity)
     {
@@ -224,13 +226,16 @@ public partial class ComponentPool<T> : IComponentPool where T : struct
     /// <returns></returns>
     public ref T this[Entity entity]
     {
-        get => ref GetComponentRef(entity);
+        get => ref GetComponent(entity);
     }
 
     public void RemoveFromEntity(Entity entity)
     {
         int denseIndex = GetDenseIndex(entity);
         int lastIndex = _dense.Count - 1;
+
+        if(ComponentsManager.ComponentRemovedDelegates.TryGetValue(typeof(T), out var callback))
+            callback(OfWorld, entity, typeof(T));
 
         if(denseIndex != lastIndex)
         {
@@ -243,7 +248,6 @@ public partial class ComponentPool<T> : IComponentPool where T : struct
         _dense.RemoveAt(lastIndex);
         _entities.RemoveAt(lastIndex);
         _sparse[entity.ID] = -1;
-
         
         _entitiesManager.TrackComponentRemove(entity, ComponentID);
     }

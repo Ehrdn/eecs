@@ -62,7 +62,7 @@ public class ComponentPoolTests
         velPool.AddToEntity(b, new Velocity(1, 2, 14));
 
         posPool[a].X = 1;
-        velPool.GetComponentRef(a).Y = 2;
+        velPool.GetComponent(a).Y = 2;
 
         velPool.SetComponent(b, new Velocity(9, 8, 7));
 
