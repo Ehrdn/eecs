@@ -86,7 +86,7 @@ public partial class EntitiesManager
         return _entityComponents[entity.ID]?.AsReadOnly();
     }
 
-    public Entity CreateEntity()
+    public Entity Create()
     {
         int id;
         if(_availableIDs.Count != 0)
@@ -97,11 +97,11 @@ public partial class EntitiesManager
         if(_entityComponents[id] == null)
             _entityComponents[id] = new List<int>();
 
-        int gen = GetEntityGeneration(id);
+        int gen = GetGeneration(id);
         return new Entity(id, gen);
     }
     
-    public void DestroyEntity(Entity entity)
+    public void Destroy(Entity entity)
     {
         if (!IsAlive(entity))
             throw new ArgumentException($"{entity} is not alive.");
@@ -118,19 +118,19 @@ public partial class EntitiesManager
         _availableIDs.Enqueue(entity.ID);
     }
     
-    public int GetEntityGeneration(int id)
+    public int GetGeneration(int entityID)
     {
-        if(!_generations.ContainsKey(id))
+        if(!_generations.ContainsKey(entityID))
             return 0;
         else
-            return _generations[id];
+            return _generations[entityID];
     }
 
     public bool IsAlive(Entity entity)
     {
         return entity.ID >= 0
             && entity.ID < EntityIDCount
-            && GetEntityGeneration(entity.ID) == entity.Generation;
+            && GetGeneration(entity.ID) == entity.Generation;
     }
 
     /// <summary>

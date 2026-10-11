@@ -29,8 +29,8 @@ public class ComponentPoolTests
     {
         var posPool = _manager.GetSet<Position>();
         var velPool = _manager.GetSet<Velocity>();
-        var a = _world.Entities.CreateEntity();
-        var b = _world.Entities.CreateEntity();
+        var a = _world.Entities.Create();
+        var b = _world.Entities.Create();
 
         posPool.AddToEntity(a, new Position(7, 14, 21));
         velPool.AddToEntity(a, new Velocity(3, 5, 7));
@@ -52,8 +52,8 @@ public class ComponentPoolTests
     {
         var posPool = _manager.GetSet<Position>();
         var velPool = _manager.GetSet<Velocity>();
-        var a = _world.Entities.CreateEntity();
-        var b = _world.Entities.CreateEntity();
+        var a = _world.Entities.Create();
+        var b = _world.Entities.Create();
 
         posPool.AddToEntity(a, new Position(7, 14, 21));
         velPool.AddToEntity(a, new Velocity(3, 5, 7));
@@ -78,8 +78,8 @@ public class ComponentPoolTests
     [Test]
     public void ComponentPool_AttemptAccessDeadEntity_ShouldThrowException()
     {
-        var a = _world.Entities.CreateEntity();
-        var b = _world.Entities.CreateEntity();
+        var a = _world.Entities.Create();
+        var b = _world.Entities.Create();
         var posPool = _manager.GetSet<Position>();
         var velPool = _manager.GetSet<Velocity>();
         var animPool = _manager.GetSet<AnimationProgress>();
@@ -90,7 +90,7 @@ public class ComponentPoolTests
         posPool.AddToEntity(b);
         animPool.AddToEntity(b);
 
-        _world.Entities.DestroyEntity(b);
+        _world.Entities.Destroy(b);
 
         Assert.That(() => posPool[b], Throws.ArgumentException);
     }
@@ -98,8 +98,8 @@ public class ComponentPoolTests
     [Test]
     public void ComponentPool_AttemptAccessEntityWithoutThisComponent_ShouldThrowException()
     {
-        var a = _world.Entities.CreateEntity();
-        var b = _world.Entities.CreateEntity();
+        var a = _world.Entities.Create();
+        var b = _world.Entities.Create();
         var posPool = _manager.GetSet<Position>();
         var velPool = _manager.GetSet<Velocity>();
         var animPool = _manager.GetSet<AnimationProgress>();
@@ -121,10 +121,10 @@ public class ComponentPoolTests
     [Test]
     public void ComponentPool_RemoveEntity_ShouldNotHaveEntityInDense()
     {
-        var a = _world.Entities.CreateEntity();
-        var b = _world.Entities.CreateEntity();
-        var c = _world.Entities.CreateEntity();
-        var d = _world.Entities.CreateEntity();
+        var a = _world.Entities.Create();
+        var b = _world.Entities.Create();
+        var c = _world.Entities.Create();
+        var d = _world.Entities.Create();
         var posPool = _manager.GetSet<Position>();
         var velPool = _manager.GetSet<Velocity>();
         var animPool = _manager.GetSet<AnimationProgress>();

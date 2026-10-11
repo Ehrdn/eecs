@@ -96,7 +96,7 @@ public class ComponentOperationCallbackTests
 
         Assert.That(posCallbackCalled, Is.False);
 
-        Entity entity = _world.Entities.CreateEntity();
+        Entity entity = _world.Entities.Create();
         _world.Components.GetSet<Position>().AddToEntity(entity);
 
         Assert.Multiple(() => {
@@ -115,7 +115,7 @@ public class ComponentOperationCallbackTests
 
         Assert.That(posBeforeRemoval, Is.EqualTo(default(Position)));
 
-        Entity entity = _world.Entities.CreateEntity();
+        Entity entity = _world.Entities.Create();
         _world.Components.GetSet<Position>().AddToEntity(entity);
         _world.Components.GetSet<Position>()[entity] = new Position(32, 124, 124);
         _world.Components.GetSet<Position>().RemoveFromEntity(entity);
@@ -136,7 +136,7 @@ public class ComponentOperationCallbackTests
 
         Assert.That(posCallbackCalled, Is.False);
 
-        Entity entity = _world.Entities.CreateEntity();
+        Entity entity = _world.Entities.Create();
         _world.Components.GetSet<Position>().AddToEntity(entity);
 
         Assert.That(posCallbackCalled, Is.False);

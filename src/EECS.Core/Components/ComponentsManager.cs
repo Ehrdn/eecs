@@ -36,8 +36,8 @@ public partial class ComponentsManager
     private static readonly Dictionary<string, int> _componentIDByName;
     private static readonly Dictionary<string, Type> _componentTypeByName;
     private static readonly Dictionary<Type, string> _componentNameByType;
-    internal static readonly Dictionary<Type, ComponentAddedDelegate> ComponentAddedDelegates;
-    internal static readonly Dictionary<Type, ComponentRemovedDelegate> ComponentRemovedDelegates;
+    internal static readonly Dictionary<Type, ComponentAddedDelegate> ComponentAddedDelegates = new();
+    internal static readonly Dictionary<Type, ComponentRemovedDelegate> ComponentRemovedDelegates = new();
 
     public readonly static IReadOnlyList<Type> ComponentTypes;
     public readonly static IReadOnlyDictionary<Type, int> ComponentIDByType;
@@ -120,16 +120,21 @@ public partial class ComponentsManager
         ComponentIDByName = _componentIDByName.AsReadOnly();
         ComponentNameByType = _componentNameByType.AsReadOnly();
         ComponentTypeByName = _componentTypeByName.AsReadOnly();
-
-        ComponentAddedDelegates = new Dictionary<Type, ComponentAddedDelegate>();
-        ComponentRemovedDelegates = new Dictionary<Type, ComponentRemovedDelegate>();
     }
 
+    public static void RegisterComponentAddedDelegate(Type componentType, ComponentAddedDelegate del)
+    {
+        ComponentAddedDelegates[componentType] = del;
+    }
     public static void RegisterComponentAddedDelegate<T>(ComponentAddedDelegate del) where T : struct
     {
         ComponentAddedDelegates[typeof(T)] = del;
     }
 
+    public static void RemoveComponentAddedDelegate(Type componentType)
+    {
+        ComponentAddedDelegates.Remove(componentType);
+    }
     public static void RemoveComponentAddedDelegate<T>() where T : struct
     {
         ComponentAddedDelegates.Remove(typeof(T));

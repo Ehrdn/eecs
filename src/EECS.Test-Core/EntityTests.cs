@@ -68,14 +68,14 @@ public class EntitiesManagerTests
     [Test]
     public void Entity_IDReuse_ShouldHaveDifferentGeneration()
     {
-        Entity a = _manager.CreateEntity();
-        Entity b = _manager.CreateEntity();
-        Entity c = _manager.CreateEntity();
+        Entity a = _manager.Create();
+        Entity b = _manager.Create();
+        Entity c = _manager.Create();
         
-        _manager.DestroyEntity(c);
-        _manager.DestroyEntity(b);
-        b = _manager.CreateEntity();
-        c = _manager.CreateEntity();
+        _manager.Destroy(c);
+        _manager.Destroy(b);
+        b = _manager.Create();
+        c = _manager.Create();
 
         Assert.Multiple(() => {
             Assert.That(a.Generation, Is.EqualTo(0));
@@ -84,23 +84,23 @@ public class EntitiesManagerTests
         });
         
         Assert.Multiple(() => {
-            Assert.That(_manager.GetEntityGeneration(a.ID), Is.EqualTo(0));
-            Assert.That(_manager.GetEntityGeneration(b.ID), Is.EqualTo(1));
-            Assert.That(_manager.GetEntityGeneration(c.ID), Is.EqualTo(1));
+            Assert.That(_manager.GetGeneration(a.ID), Is.EqualTo(0));
+            Assert.That(_manager.GetGeneration(b.ID), Is.EqualTo(1));
+            Assert.That(_manager.GetGeneration(c.ID), Is.EqualTo(1));
         });
     }
 
     [Test]
     public void Entity_IDReuse_IDShouldBeReused()
     {
-        Entity a = _manager.CreateEntity();
-        Entity b = _manager.CreateEntity();
-        Entity c = _manager.CreateEntity();
+        Entity a = _manager.Create();
+        Entity b = _manager.Create();
+        Entity c = _manager.Create();
         
-        _manager.DestroyEntity(c);
-        _manager.DestroyEntity(b);
-        b = _manager.CreateEntity();
-        c = _manager.CreateEntity();
+        _manager.Destroy(c);
+        _manager.Destroy(b);
+        b = _manager.Create();
+        c = _manager.Create();
 
         Assert.Multiple(() => {
             Assert.That(a.ID, Is.LessThanOrEqualTo(2));
@@ -113,13 +113,13 @@ public class EntitiesManagerTests
     [Test]
     public void Entity_Destroyed_ShouldNotBeAlive()
     {
-        Entity a = _manager.CreateEntity();
-        Entity b = _manager.CreateEntity();
-        Entity c = _manager.CreateEntity();
+        Entity a = _manager.Create();
+        Entity b = _manager.Create();
+        Entity c = _manager.Create();
         
-        _manager.DestroyEntity(a);
-        _manager.DestroyEntity(b);
-        b = _manager.CreateEntity();
+        _manager.Destroy(a);
+        _manager.Destroy(b);
+        b = _manager.Create();
 
         Assert.Multiple(() => {
             Assert.That(_manager.IsAlive(a), Is.False);
@@ -131,8 +131,8 @@ public class EntitiesManagerTests
     [Test]
     public void Entity_Destroyed_ShouldRemoveComponents()
     {
-        Entity a = _manager.CreateEntity();
-        Entity b = _manager.CreateEntity();
+        Entity a = _manager.Create();
+        Entity b = _manager.Create();
 
         _world.Components.Add<Position>(a);
         _world.Components.Add<Position>(b);
@@ -141,7 +141,7 @@ public class EntitiesManagerTests
         _world.Components.Add<AnimationProgress>(a);
         _world.Components.Add<AnimationProgress>(b);
 
-        _manager.DestroyEntity(a);
+        _manager.Destroy(a);
 
         Assert.Multiple(() => {
             Assert.That(_world.Components.Has<Position>(a), Is.False);
@@ -157,8 +157,8 @@ public class EntitiesManagerTests
     [Test]
     public void Entity_AddedComponent_ManagerShouldSyncEntityComponentIDs()
     {
-        var a = _manager.CreateEntity();
-        var b = _manager.CreateEntity();
+        var a = _manager.Create();
+        var b = _manager.Create();
         int posID = ComponentsManager.ComponentIDByType[typeof(Position)];
         int velID = ComponentsManager.ComponentIDByType[typeof(Velocity)];
         int animID = ComponentsManager.ComponentIDByType[typeof(AnimationProgress)];
@@ -185,8 +185,8 @@ public class EntitiesManagerTests
     [Test]
     public void Entity_RemovedComponent_ManagerShouldSyncEntityComponentIDs()
     {
-        var a = _manager.CreateEntity();
-        var b = _manager.CreateEntity();
+        var a = _manager.Create();
+        var b = _manager.Create();
         int posID = ComponentsManager.ComponentIDByType[typeof(Position)];
         int velID = ComponentsManager.ComponentIDByType[typeof(Velocity)];
         int animID = ComponentsManager.ComponentIDByType[typeof(AnimationProgress)];

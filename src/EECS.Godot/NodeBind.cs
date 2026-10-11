@@ -8,17 +8,20 @@ namespace EECS.Godot;
 /// <summary>
 /// Entity with this Component has the ability to bind with a Godot node.
 /// This component exists purely for filtering nodes with the ability to bind with entities in Query.
-/// Access whether or not it is binded with a node through `NodeBindsManager` in `GodotWorld`.
+/// You can add or remove this component freely, but access whether or not it is binded with a node through `NodeBindsManager` in `GodotWorld`.
 /// </summary>
 [Component("Godot.NodeBind")]
 public struct NodeBind
 {
     internal Node? BindedNode;
-    public NodeBind(Node? bindedNode)
+    internal NodeBind(Node? bindedNode)
     {
         this.BindedNode = bindedNode;
     }
 }
+
+
+// Note: For the users, the bindings for entities are automatically removed when the binded node is invalidated. Even though internally the NodeBind component might still have the reference to the invalidated node, the NodeBindsManager will update lazily when the user queries for binded entities.
 
 public class NodeBindsManager
 {
@@ -64,6 +67,22 @@ public class NodeBindsManager
     }
 
     /// <summary>
+    /// Destroy all entities with NodeBind Component that are not binded with any valid node.
+    /// </summary>
+    public void DestroyEntitiesWithoutBind()
+    {
+        foreach(Entity entity in
+                new Query(OfWorld)
+                .With<NodeBind>()
+                .ExecuteSnapshot())
+        {
+            UnbindInvalidNode(entity);
+            if(!IsBinded(entity))
+                OfWorld.Entities.Destroy(entity);
+        }
+    }
+
+    /// <summary>
     /// Returns the entity that the node is binded with.
     /// </summary>
     /// <param name="node"></param>
@@ -92,7 +111,7 @@ public class NodeBindsManager
     }
 
     /// <summary>
-    /// Bind an Entity without NodeBind Component with a node.
+    /// Bind an Entity with NodeBind Component with a node.
     /// Throws an exception if the Entity does not have NodeBind Component. Add the Component through ECS first before binding.
     /// Throws an exception if the node/entity is already binded with another entity/node.
     /// </summary>
@@ -165,7 +184,7 @@ public class NodeBindsManager
         foreach(Entity entity
                 in new Query(OfWorld)
                 .With<NodeBind>()
-                .ExecuteSnapshot())
+                .Execute())
             _nodeBindPool[entity].BindedNode = null;
         _nodeBindCache.Clear();
     }

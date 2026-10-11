@@ -27,7 +27,7 @@ public class PrototypeTests
     [Test]
     public void Prototype_EntityCreatedFromPrototype_ShouldHaveSameComponents()
     {
-        Entity pro_entity = _prototypeWorld.Entities.CreateEntity();
+        Entity pro_entity = _prototypeWorld.Entities.Create();
 
         ComponentPool<Position> pro_pos = _prototypeWorld.Components.GetSet<Position>();
         ComponentPool<AnimationProgress> pro_anim = _prototypeWorld.Components.GetSet<AnimationProgress>();
@@ -60,7 +60,7 @@ public class PrototypeTests
     public void Prototype_CreateEntityUsingConfiguredPrototypeWorld_ShouldCopyPrototype()
     {
         _world.PrototypeWorld = _prototypeWorld;
-        Entity prototype = _prototypeWorld.Entities.CreateEntity();
+        Entity prototype = _prototypeWorld.Entities.Create();
         ComponentPool<Position> prototypePositions = _prototypeWorld.Components.GetSet<Position>();
         prototypePositions.AddToEntity(prototype, new Position(1, 2, 3));
 
@@ -73,8 +73,8 @@ public class PrototypeTests
     [Test]
     public void Prototype_CreateEntityFromDeadPrototype_ShouldThrowException()
     {
-        Entity prototype = _prototypeWorld.Entities.CreateEntity();
-        _prototypeWorld.Entities.DestroyEntity(prototype);
+        Entity prototype = _prototypeWorld.Entities.Create();
+        _prototypeWorld.Entities.Destroy(prototype);
 
         Assert.That(
             () => _world.Entities.CreateEntity(_prototypeWorld, prototype),

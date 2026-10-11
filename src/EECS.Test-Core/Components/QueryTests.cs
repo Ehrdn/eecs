@@ -31,10 +31,10 @@ public class QueryTests
     [Test]
     public void Query_WithComponents_ShouldIterateEntitiesCorrectly()
     {
-        var a = _world.Entities.CreateEntity();
-        var b = _world.Entities.CreateEntity();
-        var c = _world.Entities.CreateEntity();
-        var d = _world.Entities.CreateEntity();
+        var a = _world.Entities.Create();
+        var b = _world.Entities.Create();
+        var c = _world.Entities.Create();
+        var d = _world.Entities.Create();
         var posPool = _components.GetSet<Position>();
         var velPool = _components.GetSet<Velocity>();
         var animPool = _components.GetSet<AnimationProgress>();
@@ -83,10 +83,10 @@ public class QueryTests
     [Test]
     public void Query_WithoutComponents_ShouldIterateEntitiesCorrectly()
     {
-        var a = _world.Entities.CreateEntity();
-        var b = _world.Entities.CreateEntity();
-        var c = _world.Entities.CreateEntity();
-        var d = _world.Entities.CreateEntity();
+        var a = _world.Entities.Create();
+        var b = _world.Entities.Create();
+        var c = _world.Entities.Create();
+        var d = _world.Entities.Create();
         var posPool = _components.GetSet<Position>();
         var velPool = _components.GetSet<Velocity>();
         var animPool = _components.GetSet<AnimationProgress>();

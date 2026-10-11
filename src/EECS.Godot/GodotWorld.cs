@@ -9,12 +9,15 @@ namespace EECS.Godot;
 public class GodotWorld : World
 {
     public NodeBindsManager NodeBinds;
-    public NodeSyncManager NodeSync;
-    public GodotWorld() : this(World.DefaultMaxEntityID) {}
-    public GodotWorld(int maxEntityID) : base(maxEntityID)
+    public NodeSyncManager? NodeSync;
+    public GodotWorld()
     {
         NodeBinds = new NodeBindsManager(this);
-        NodeSync = new NodeSyncManager(this);
+    }
+    public GodotWorld(int maxEntityID, Node nodeSyncRootNode, bool isNodeSyncLayered = false) : base(maxEntityID)
+    {
+        NodeBinds = new NodeBindsManager(this);
+        NodeSync = new NodeSyncManager(this, nodeSyncRootNode, isNodeSyncLayered);
     }
     public override void Reset()
     {

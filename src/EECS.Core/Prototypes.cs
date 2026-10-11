@@ -13,7 +13,7 @@ namespace EECS.Core
     {
         public Entity CreateEntity(World prototypeWorld, Entity prototypeID)
         {
-            Entity entity = CreateEntity();
+            Entity entity = Create();
             if(!prototypeWorld.Entities.IsAlive(prototypeID))
                 throw new InvalidOperationException("Prototype entity is not alive.");
             foreach(int cid in prototypeWorld.Entities.GetEntityComponentIDs(prototypeID)!)
