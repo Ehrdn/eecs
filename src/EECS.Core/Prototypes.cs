@@ -5,7 +5,7 @@ namespace EECS.Core
     public partial class World
     {
         /// <summary>
-        /// Where the prototypes of this world are stored.
+        /// Where the prototypes of this world are stored by default.
         /// </summary>
         public World? PrototypeWorld { get; set; }
     }

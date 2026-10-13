@@ -1,7 +1,11 @@
 using Godot;
+
+using System.ComponentModel;
+using System.Collections.Generic;
+using System;
+
 using EECS.Core;
 using EECS.Core.Components;
-using System.ComponentModel;
 
 namespace EECS.Godot;
 
@@ -91,7 +95,7 @@ public class NodeBindsManager
     {
         UpdateNodeCache(node);
         if(!_nodeBindCache.ContainsKey(node.GetInstanceId()))
-            throw new InvalidOperationException($"Node {node} is not binded with any entity.");
+            return default; 
         ulong nodeID = node.GetInstanceId();
         return _nodeBindCache[nodeID];
     }
@@ -100,13 +104,13 @@ public class NodeBindsManager
     /// </summary>
     /// <param name="entity"></param>
     /// <returns></returns>
-    public Node GetBinded(Entity entity)
+    public Node? GetBinded(Entity entity)
     {
         if(!_nodeBindPool.EntityHasComponent(entity))
             throw new InvalidOperationException($"Entity {entity} does not have NodeBind Component.");
         UnbindInvalidNode(entity);
         if(_nodeBindPool[entity].BindedNode == null)
-            throw new InvalidOperationException($"Entity {entity} is not binded with any node.");
+            return null;
         return _nodeBindPool[entity].BindedNode!;
     }
 
@@ -158,7 +162,7 @@ public class NodeBindsManager
     {
         if(!IsBinded(entity))
             return;
-        Node node = GetBinded(entity);
+        Node node = GetBinded(entity)!;
         _nodeBindPool[entity].BindedNode = null;
         _nodeBindCache.Remove(node.GetInstanceId());
     }

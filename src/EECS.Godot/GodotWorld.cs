@@ -14,7 +14,7 @@ public class GodotWorld : World
     {
         NodeBinds = new NodeBindsManager(this);
     }
-    public GodotWorld(int maxEntityID, Node nodeSyncRootNode, bool isNodeSyncLayered = false) : base(maxEntityID)
+    public GodotWorld(int maxEntityID, Node? nodeSyncRootNode, bool isNodeSyncLayered = false) : base(maxEntityID)
     {
         NodeBinds = new NodeBindsManager(this);
         NodeSync = new NodeSyncManager(this, nodeSyncRootNode, isNodeSyncLayered);

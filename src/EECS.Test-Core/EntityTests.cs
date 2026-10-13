@@ -46,6 +46,15 @@ public class EntityTests
             Assert.That(a, Is.Not.EqualTo(c));
         });
     }
+
+    [Test]
+    public void Entity_DefaultValue_IsInvalid()
+    {
+        Entity entity = default;
+
+        Assert.That(entity.IsValid, Is.False);
+        Assert.That(new Entity(0, 1).IsValid, Is.False);
+    }
 }
 
 public class EntitiesManagerTests
@@ -57,6 +66,20 @@ public class EntitiesManagerTests
     public void Setup()
     {
         _world = new World();
+    }
+
+    [Test]
+    public void Entity_Create_ShouldNotUseReservedZeroID()
+    {
+        Entity entity = _manager.Create();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(entity.ID, Is.EqualTo(1));
+            Assert.That(entity.IsValid, Is.True);
+            Assert.That(_manager.IsAlive(default), Is.False);
+            Assert.That(_manager.IsAlive(new Entity(0, 1)), Is.False);
+        });
     }
 
     [TearDown]
@@ -103,10 +126,10 @@ public class EntitiesManagerTests
         c = _manager.Create();
 
         Assert.Multiple(() => {
-            Assert.That(a.ID, Is.LessThanOrEqualTo(2));
-            Assert.That(b.ID, Is.LessThanOrEqualTo(2));
-            Assert.That(c.ID, Is.LessThanOrEqualTo(2));
-            Assert.That(_manager.EntityIDCount, Is.LessThanOrEqualTo(3));
+            Assert.That(a.ID, Is.InRange(1, 3));
+            Assert.That(b.ID, Is.InRange(1, 3));
+            Assert.That(c.ID, Is.InRange(1, 3));
+            Assert.That(_manager.EntityIDCount, Is.LessThanOrEqualTo(4));
         });
     }
 

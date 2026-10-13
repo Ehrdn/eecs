@@ -2,6 +2,7 @@ using Godot;
 using EECS.Core;
 using EECS.Core.Components;
 using System.ComponentModel;
+using System;
 
 namespace EECS.Godot;
 
@@ -67,7 +68,6 @@ internal struct NodeSyncLayered
 [Component] public struct NodeSyncLayer16 { }
 #endregion
 
-
 public class NodeSyncManager
 {
     public GodotWorld OfWorld;
@@ -76,7 +76,7 @@ public class NodeSyncManager
     /// You may want this behavior if the nodes that corresponds to the entities are in a hierarchy and you want to sync the parent nodes before the child nodes.
     /// </summary>
     public readonly bool IsLayered;
-    public readonly Node RootNode;
+    public Node? RootNode;
 
     private readonly ComponentPool<NodeSync> _nodeSyncPool;
     private readonly ComponentPool<NodeBind> _nodeBindPool;
@@ -107,7 +107,7 @@ public class NodeSyncManager
     //         .RegisterComponentAddedDelegate(type, ())
     // }
 
-    public NodeSyncManager(GodotWorld world, Node rootNode, bool isLayered = false)
+    public NodeSyncManager(GodotWorld world, Node? rootNode, bool isLayered = false)
     {
         OfWorld = world;
         IsLayered = isLayered;
@@ -200,14 +200,14 @@ public class NodeSyncManager
         if(!OfWorld.NodeBinds.IsBinded(entity))
         {
             node = nodeSync.TargetScene.Instantiate<Node>();
-            Node parent = RootNode.GetNode(nodeSync.TargetParent);
+            Node parent = RootNode!.GetNode(nodeSync.TargetParent);
             parent.AddChild(node);
             OfWorld.NodeBinds.Bind(entity, node);
         }
         else
         {
-            node = OfWorld.NodeBinds.GetBinded(entity);
-            if(node.GetParent() != RootNode.GetNode(nodeSync.TargetParent))
+            node = OfWorld.NodeBinds.GetBinded(entity)!;
+            if(node.GetParent() != RootNode!.GetNode(nodeSync.TargetParent))
             {
                 Node parent = RootNode.GetNode(nodeSync.TargetParent);
                 node.GetParent().RemoveChild(node);

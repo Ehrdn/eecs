@@ -1,4 +1,4 @@
-﻿<Project Sdk="Godot.NET.Sdk/4.7.0">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -13,6 +13,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EECS.Core\EECS.Core.csproj" />
+    
+    <PackageReference Include="GodotSharp" Version="4.4.0" />
   </ItemGroup>
 
 </Project>

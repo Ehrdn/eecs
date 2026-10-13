@@ -1,8 +1,11 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 
 using EECS.Core.Components;
 
@@ -19,6 +22,11 @@ public readonly struct Entity : IEquatable<Entity>
 
     public int ID => (int)(Value & 0xFFFFFFFF);
     public int Generation => (int)(Value >> 32);
+    /// <summary>
+    /// True if the entity's ID is not 0. This doesn not give indication of whether the entity is alive or not, use EntitiesManager.IsAlive instead.
+    /// Treat the entity as if it is null if this is false.
+    /// </summary>
+    public bool IsValid => ID != 0;
 
     public Entity(int id, int generation)
     {
@@ -56,6 +64,333 @@ public readonly struct Entity : IEquatable<Entity>
     }
 }
 
+#region EntityBuffers
+
+[InlineArray(8)]
+public struct Entity8
+{
+    private Entity _value;
+}
+
+public struct EntityBuffer8 : IList<Entity>, IReadOnlyList<Entity>
+{
+    public Entity8 Entities;
+    public byte Count;
+
+    public Entity this[int index]
+    {
+        get
+        {
+            if ((uint)index >= Count)
+                throw new ArgumentOutOfRangeException(nameof(index));
+            return Entities[index];
+        }
+        set
+        {
+            if ((uint)index >= Count)
+                throw new ArgumentOutOfRangeException(nameof(index));
+            Entities[index] = value;
+        }
+    }
+
+    int ICollection<Entity>.Count => Count;
+    int IReadOnlyCollection<Entity>.Count => Count;
+    bool ICollection<Entity>.IsReadOnly => false;
+
+    public void Add(Entity entity)
+    {
+        if (Count == 8)
+            throw new InvalidOperationException("The entity buffer is full.");
+        Entities[Count++] = entity;
+    }
+
+    public void Clear()
+    {
+        for (int i = 0; i < Count; i++)
+            Entities[i] = default;
+        Count = 0;
+    }
+
+    public bool Contains(Entity entity) => IndexOf(entity) >= 0;
+
+    public int IndexOf(Entity entity)
+    {
+        for (int i = 0; i < Count; i++)
+            if (Entities[i] == entity)
+                return i;
+        return -1;
+    }
+
+    public void CopyTo(Entity[] array, int arrayIndex)
+    {
+        if (array == null)
+            throw new ArgumentNullException(nameof(array));
+        if (arrayIndex < 0 || arrayIndex > array.Length || array.Length - arrayIndex < Count)
+            throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+
+        for (int i = 0; i < Count; i++)
+            array[arrayIndex + i] = Entities[i];
+    }
+
+    public bool Remove(Entity entity)
+    {
+        int index = IndexOf(entity);
+        if (index < 0)
+            return false;
+        RemoveAt(index);
+        return true;
+    }
+
+    public void Insert(int index, Entity entity)
+    {
+        if ((uint)index > Count)
+            throw new ArgumentOutOfRangeException(nameof(index));
+        if (Count == 8)
+            throw new InvalidOperationException("The entity buffer is full.");
+
+        for (int i = Count; i > index; i--)
+            Entities[i] = Entities[i - 1];
+        Entities[index] = entity;
+        Count++;
+    }
+
+    public void RemoveAt(int index)
+    {
+        if ((uint)index >= Count)
+            throw new ArgumentOutOfRangeException(nameof(index));
+
+        for (int i = index; i < Count - 1; i++)
+            Entities[i] = Entities[i + 1];
+        Entities[--Count] = default;
+    }
+
+    public IEnumerator<Entity> GetEnumerator()
+    {
+        for (int i = 0; i < Count; i++)
+            yield return Entities[i];
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+[InlineArray(16)]
+public struct Entity16
+{
+    Entity _value;
+}
+
+public struct EntityBuffer16 : IList<Entity>, IReadOnlyList<Entity>
+{
+    public Entity16 Entities;
+    public byte Count;
+
+    public Entity this[int index]
+    {
+        get
+        {
+            if ((uint)index >= Count)
+                throw new ArgumentOutOfRangeException(nameof(index));
+            return Entities[index];
+        }
+        set
+        {
+            if ((uint)index >= Count)
+                throw new ArgumentOutOfRangeException(nameof(index));
+            Entities[index] = value;
+        }
+    }
+
+    int ICollection<Entity>.Count => Count;
+    int IReadOnlyCollection<Entity>.Count => Count;
+    bool ICollection<Entity>.IsReadOnly => false;
+
+    public void Add(Entity entity)
+    {
+        if (Count == 16)
+            throw new InvalidOperationException("The entity buffer is full.");
+        Entities[Count++] = entity;
+    }
+
+    public void Clear()
+    {
+        for (int i = 0; i < Count; i++)
+            Entities[i] = default;
+        Count = 0;
+    }
+
+    public readonly bool Contains(Entity entity) => IndexOf(entity) >= 0;
+
+    public readonly int IndexOf(Entity entity)
+    {
+        for (int i = 0; i < Count; i++)
+            if (Entities[i] == entity)
+                return i;
+        return -1;
+    }
+
+    public readonly void CopyTo(Entity[] array, int arrayIndex)
+    {
+        if (array == null)
+            throw new ArgumentNullException(nameof(array));
+        if (arrayIndex < 0 || arrayIndex > array.Length || array.Length - arrayIndex < Count)
+            throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+
+        for (int i = 0; i < Count; i++)
+            array[arrayIndex + i] = Entities[i];
+    }
+
+    public bool Remove(Entity entity)
+    {
+        int index = IndexOf(entity);
+        if (index < 0)
+            return false;
+        RemoveAt(index);
+        return true;
+    }
+
+    public void Insert(int index, Entity entity)
+    {
+        if ((uint)index > Count)
+            throw new ArgumentOutOfRangeException(nameof(index));
+        if (Count == 16)
+            throw new InvalidOperationException("The entity buffer is full.");
+
+        for (int i = Count; i > index; i--)
+            Entities[i] = Entities[i - 1];
+        Entities[index] = entity;
+        Count++;
+    }
+
+    public void RemoveAt(int index)
+    {
+        if ((uint)index >= Count)
+            throw new ArgumentOutOfRangeException(nameof(index));
+
+        for (int i = index; i < Count - 1; i++)
+            Entities[i] = Entities[i + 1];
+        Entities[--Count] = default;
+    }
+
+    public IEnumerator<Entity> GetEnumerator()
+    {
+        for (int i = 0; i < Count; i++)
+            yield return Entities[i];
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+
+[InlineArray(32)]
+public struct Entity32
+{
+    Entity _value;
+}
+
+public struct EntityBuffer32 : IList<Entity>, IReadOnlyList<Entity>
+{
+    public Entity32 Entities;
+    public byte Count;
+
+    public Entity this[int index]
+    {
+        get
+        {
+            if ((uint)index >= Count)
+                throw new ArgumentOutOfRangeException(nameof(index));
+            return Entities[index];
+        }
+        set
+        {
+            if ((uint)index >= Count)
+                throw new ArgumentOutOfRangeException(nameof(index));
+            Entities[index] = value;
+        }
+    }
+
+    int ICollection<Entity>.Count => Count;
+    int IReadOnlyCollection<Entity>.Count => Count;
+    bool ICollection<Entity>.IsReadOnly => false;
+
+    public void Add(Entity entity)
+    {
+        if (Count == 32)
+            throw new InvalidOperationException("The entity buffer is full.");
+        Entities[Count++] = entity;
+    }
+
+    public void Clear()
+    {
+        for (int i = 0; i < Count; i++)
+            Entities[i] = default;
+        Count = 0;
+    }
+
+    public bool Contains(Entity entity) => IndexOf(entity) >= 0;
+
+    public int IndexOf(Entity entity)
+    {
+        for (int i = 0; i < Count; i++)
+            if (Entities[i] == entity)
+                return i;
+        return -1;
+    }
+
+    public void CopyTo(Entity[] array, int arrayIndex)
+    {
+        if (array == null)
+            throw new ArgumentNullException(nameof(array));
+        if (arrayIndex < 0 || arrayIndex > array.Length || array.Length - arrayIndex < Count)
+            throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+
+        for (int i = 0; i < Count; i++)
+            array[arrayIndex + i] = Entities[i];
+    }
+
+    public bool Remove(Entity entity)
+    {
+        int index = IndexOf(entity);
+        if (index < 0)
+            return false;
+        RemoveAt(index);
+        return true;
+    }
+
+    public void Insert(int index, Entity entity)
+    {
+        if ((uint)index > Count)
+            throw new ArgumentOutOfRangeException(nameof(index));
+        if (Count == 32)
+            throw new InvalidOperationException("The entity buffer is full.");
+
+        for (int i = Count; i > index; i--)
+            Entities[i] = Entities[i - 1];
+        Entities[index] = entity;
+        Count++;
+    }
+
+    public void RemoveAt(int index)
+    {
+        if ((uint)index >= Count)
+            throw new ArgumentOutOfRangeException(nameof(index));
+
+        for (int i = index; i < Count - 1; i++)
+            Entities[i] = Entities[i + 1];
+        Entities[--Count] = default;
+    }
+
+    public IEnumerator<Entity> GetEnumerator()
+    {
+        for (int i = 0; i < Count; i++)
+            yield return Entities[i];
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+
+#endregion
+
 /// <summary>
 /// Instance belongs to a World.
 /// </summary>
@@ -66,7 +401,7 @@ public partial class EntitiesManager
     /// <summary>
     /// The max entity ID reached + 1, remains even after entities are Destroyed. Only decreased when resets.
     /// </summary>
-    public int EntityIDCount { get; private set; } = 0;
+    public int EntityIDCount { get; private set; } = 1;
     public readonly int MaxEntityID;
 
     private Dictionary<int, int> _generations;
@@ -128,7 +463,7 @@ public partial class EntitiesManager
 
     public bool IsAlive(Entity entity)
     {
-        return entity.ID >= 0
+        return entity.IsValid
             && entity.ID < EntityIDCount
             && GetGeneration(entity.ID) == entity.Generation;
     }
@@ -138,7 +473,7 @@ public partial class EntitiesManager
     /// </summary>
     internal void Reset()
     {
-        EntityIDCount = 0;
+        EntityIDCount = 1;
         _generations.Clear();
         _availableIDs.Clear();
         _entityComponents = new List<int>[MaxEntityID + 1];
