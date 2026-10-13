@@ -158,12 +158,16 @@ public class NodeSyncManager
         OfWorld.Components.GetSet(_nodeSyncLayerTypes[layer - 1]).AddToEntity(entity);
     }
 
-    public void SyncAll()
+    public void SyncAll(Query? withQuery = null)
     {
+        if(withQuery == null)
+            withQuery = new Query(OfWorld);
+        if(withQuery.OfWorld != OfWorld)
+            throw new InvalidOperationException("withQuery does not have the same OfWorld field as the NodeSync instance");
         if(IsLayered)
         {
             foreach(Entity entity in
-                new Query(OfWorld)
+                withQuery
                 .With<NodeSyncLayered>()
                 .ExecuteSnapshot())
                     UpdateNodeSyncLayer(entity);
@@ -172,13 +176,13 @@ public class NodeSyncManager
             {
                 Type layerType = _nodeSyncLayerTypes[i];
                 foreach(Entity entity in
-                    new Query(OfWorld)
+                    withQuery
                     .With(layerType)
                     .ExecuteSnapshot())
                     Sync(entity);
             }
             foreach(Entity entity in
-                new Query(OfWorld)
+                withQuery
                 .With<NodeSync>()
                 .Without<NodeSyncLayered>()
                 .ExecuteSnapshot())
@@ -186,7 +190,7 @@ public class NodeSyncManager
         }
         else
         foreach(Entity entity in
-                    new Query(OfWorld)
+                    withQuery
                     .With<NodeSync>()
                     .ExecuteSnapshot())
             Sync(entity);
@@ -219,12 +223,23 @@ public class NodeSyncManager
         return node;
     }
 
-    public void ResetAllEntityLayeredStates()
+    /// <summary>
+    /// Reset all entities that have NodeSync Component with withQuery's NodeSycn Layered State.
+    /// Will Reset all entities with NodeSyncComponent if withQuery is not given.
+    /// </summary>
+    /// <param name="WithQuery"></param>
+    /// <exception cref="InvalidOperationException"></exception>
+    public void ResetEntitiesLayeredStates(Query? withQuery)
     {
+        if(withQuery == null)
+            withQuery = new Query(OfWorld);
+        if(withQuery.OfWorld != OfWorld)
+            throw new InvalidOperationException("withQuery does not have the same OfWorld field as the NodeSync instance");
+        
         if(!IsLayered)
             throw new InvalidOperationException("NodeSyncManager is not layered. Cannot reset entity layered states.");
         foreach(Entity entity in
-                    new Query(OfWorld)
+                    withQuery
                     .With<NodeSyncLayered>()
                     .ExecuteSnapshot())
             OfWorld.Components.Remove<NodeSyncLayered>(entity);
