@@ -44,7 +44,7 @@ public partial class ComponentsManager
     public readonly static IReadOnlyDictionary<string, int> ComponentIDByName;
     public readonly static IReadOnlyDictionary<string, Type> ComponentTypeByName;
     public readonly static IReadOnlyDictionary<Type, string> ComponentNameByType;
-    public readonly int MaxEntityID;
+    public readonly int MaxEntityCount;
     public readonly World OfWorld;
 
     private readonly IComponentPool[] _pools;
@@ -150,10 +150,10 @@ public partial class ComponentsManager
         ComponentRemovedDelegates.Remove(typeof(T));
     }
 
-    public ComponentsManager(World world, int maxEntityID)
+    public ComponentsManager(World world, int maxEntityCount)
     {
         OfWorld = world;
-        MaxEntityID = maxEntityID;
+        MaxEntityCount = maxEntityCount;
         _pools = new IComponentPool[_componentTypes.Length];
         SetupComponentPools();
     }
@@ -169,7 +169,7 @@ public partial class ComponentsManager
             _pools[i] = (IComponentPool)Activator.CreateInstance(
                 poolType,
                 OfWorld,
-                MaxEntityID,
+                MaxEntityCount,
                 4096
             )!;
         }

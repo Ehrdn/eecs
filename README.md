@@ -5,3 +5,5 @@ This project is a learning project for me and is being developed alongside my in
 Feel free to use it or give suggestions, though I'm still an amateur in C# and Game Dev, so I doubt it will be of use to anyone except for me.
 
 See tests for example usage.
+
+Note: This is the dev branch. I have two devices so there will be weird trivial commits.

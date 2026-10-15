@@ -11,6 +11,8 @@ using EECS.Core.Components;
 
 namespace EECS.Core;
 
+// TODO: Command Buffer & Change Entities._entityComponents
+
 /// <summary>
 /// Entity.
 /// Entities belongs to a World, but they don't store the world they belong.
@@ -402,7 +404,7 @@ public partial class EntitiesManager
     /// The max entity ID reached + 1, remains even after entities are Destroyed. Only decreased when resets.
     /// </summary>
     public int EntityIDCount { get; private set; } = 1;
-    public readonly int MaxEntityID;
+    public readonly int MaxEntityCount;
 
     private Dictionary<int, int> _generations;
     private Queue<int> _availableIDs;
@@ -476,7 +478,7 @@ public partial class EntitiesManager
         EntityIDCount = 1;
         _generations.Clear();
         _availableIDs.Clear();
-        _entityComponents = new List<int>[MaxEntityID + 1];
+        _entityComponents = new List<int>[MaxEntityCount + 1];
     }
 
     /// <summary>
@@ -509,12 +511,12 @@ public partial class EntitiesManager
         _entityComponents[eid].Remove(componentID);
     }
 
-    public EntitiesManager(World world, int maxEntityID)
+    public EntitiesManager(World world, int maxEntityCount)
     {
         OfWorld = world;
-        MaxEntityID = maxEntityID;
+        MaxEntityCount = maxEntityCount;
         _generations = new Dictionary<int, int>();
         _availableIDs = new Queue<int>();
-        _entityComponents = new List<int>[MaxEntityID + 1];
+        _entityComponents = new List<int>[MaxEntityCount + 1];
     }
 }
