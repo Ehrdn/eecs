@@ -15,7 +15,7 @@ namespace EECS.Core;
 /// </summary>
 public partial class World
 {
-	public static int DefaultMaxEntityID { get; set; } = 1000000;
+	public static int DefaultMaxEntityCount { get; set; } = 1000000;
 
 	public static int Count { get; private set; } = 0;
 	
@@ -26,14 +26,14 @@ public partial class World
 	public readonly EntitiesManager Entities;
 	public readonly ComponentsManager Components;
 
-	public World(int maxEntityID)
+	public World(int maxEntityCount)
 	{
 		ID = Count++;
-		Entities = new EntitiesManager(this, maxEntityID);
-		Components = new ComponentsManager(this, maxEntityID);
+		Entities = new EntitiesManager(this, maxEntityCount);
+		Components = new ComponentsManager(this, maxEntityCount);
 	}
 
-	public World() : this(DefaultMaxEntityID) { }
+	public World() : this(DefaultMaxEntityCount) { }
 
 	public virtual void Reset()
 	{

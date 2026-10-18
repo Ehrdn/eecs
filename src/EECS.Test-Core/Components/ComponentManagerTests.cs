@@ -21,6 +21,11 @@ public struct ComponentWithAnotherExplicitName { }
 [Component]
 public struct ComponentWithImplicitName { }
 
+[Component]
+public struct GenericComponent<T>
+{
+    public T Value;
+}
 
 [TestFixture]
 public class ComponentNameTests
@@ -29,7 +34,7 @@ public class ComponentNameTests
     [SetUp]
     public void Setup()
     {
-        _world = new World();    
+        _world = new World();
     }
 
     
@@ -63,6 +68,38 @@ public class ComponentNameTests
                 Is.EqualTo("EECS.Test_Core.Components.ComponentWithImplicitName")
             );
         });
+    }
+}
+
+[TestFixture]
+public class GenericComponentRegistrationTests
+{
+    [Test]
+    public void RegisterComponent_ClosedGenericStruct_ShouldRegisterAndCreatePoolsForExistingWorlds()
+    {
+        var world = new World();
+        ComponentsManager.RegisterComponent<GenericComponent<int>>("GenericIntComponent");
+
+        Entity entity = world.Entities.Create();
+        world.Components.Add(entity, new GenericComponent<int> { Value = 42 });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                ComponentsManager.ComponentNameByType[typeof(GenericComponent<int>)],
+                Is.EqualTo("GenericIntComponent")
+            );
+            Assert.That(
+                ComponentsManager.ComponentTypeByName["GenericIntComponent"],
+                Is.EqualTo(typeof(GenericComponent<int>))
+            );
+            Assert.That(world.Components.Get<GenericComponent<int>>(entity).Value, Is.EqualTo(42));
+            Assert.That(new Query(world).With<GenericComponent<int>>().Execute(), Contains.Item(entity));
+        });
+
+        Assert.DoesNotThrow(
+            () => ComponentsManager.RegisterComponent<GenericComponent<int>>("GenericIntComponent")
+        );
     }
 }
 

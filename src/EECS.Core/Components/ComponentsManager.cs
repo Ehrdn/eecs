@@ -5,10 +5,11 @@ namespace EECS.Core.Components;
 
 /// <summary>
 /// Attach this to struct that should be components.
-/// Does not support Generic types.
+/// For closed generic component types, use
+/// <see cref="ComponentsManager.RegisterComponent{T}(string?)"/>.
 /// </summary>
 [AttributeUsage(AttributeTargets.Struct, Inherited = false)]
-public sealed class ComponentAttribute : System.Attribute
+public sealed class ComponentAttribute : Attribute
 {
     public string? Name;
     public ComponentAttribute(string name)
@@ -21,8 +22,6 @@ public sealed class ComponentAttribute : System.Attribute
     }
 }
 
-// TODO: Add a static method to register a closed generic type struct as a component type.
-
 /// <summary>
 /// Instance belongs to a World.
 /// </summary>
@@ -31,11 +30,13 @@ public partial class ComponentsManager
     public delegate void ComponentAddedDelegate(World world, Entity entity, Type componentType);
     public delegate void ComponentRemovedDelegate(World world, Entity entity, Type componentType);
 
-    private static readonly Type[] _componentTypes;
+    private static readonly List<Type> _componentTypes;
     private static readonly Dictionary<Type, int> _componentIDByType;
     private static readonly Dictionary<string, int> _componentIDByName;
     private static readonly Dictionary<string, Type> _componentTypeByName;
     private static readonly Dictionary<Type, string> _componentNameByType;
+    private static readonly object _componentRegistrationLock = new();
+    private static readonly List<WeakReference<ComponentsManager>> _managers = new();
     internal static readonly Dictionary<Type, ComponentAddedDelegate> ComponentAddedDelegates = new();
     internal static readonly Dictionary<Type, ComponentRemovedDelegate> ComponentRemovedDelegates = new();
 
@@ -47,7 +48,7 @@ public partial class ComponentsManager
     public readonly int MaxEntityCount;
     public readonly World OfWorld;
 
-    private readonly IComponentPool[] _pools;
+    private readonly List<IComponentPool> _pools;
 
     /// <summary>
     /// Get all struct with ComponentAttribute and store them to _componentTypes and _componentIDByType.
@@ -70,13 +71,13 @@ public partial class ComponentsManager
             from a in AppDomain.CurrentDomain.GetAssemblies().AsParallel()
             from t in a.GetTypes()
             let attributes = t.GetCustomAttributes(typeof(ComponentAttribute), true)
-            where attributes != null && attributes.Length > 0
+            where !t.ContainsGenericParameters && attributes != null && attributes.Length > 0
             select new { Type = t, Attributes = attributes.Cast<ComponentAttribute>() };
 
         _componentTypes = componentTypes
             .Select(x => x.Type)
             .OrderBy(t => t.AssemblyQualifiedName)
-            .ToArray();
+            .ToList();
 
         var explicitComponentNames = new Dictionary<Type, string>();
         foreach (var componentType in _componentTypes)
@@ -91,7 +92,7 @@ public partial class ComponentsManager
         }
 
         _componentIDByType = new Dictionary<Type, int>();
-        for (int i = 0; i < _componentTypes.Length; i++)
+        for (int i = 0; i < _componentTypes.Count; i++)
             _componentIDByType[_componentTypes[i]] = i;
 
         _componentIDByName = new Dictionary<string, int>();
@@ -103,7 +104,6 @@ public partial class ComponentsManager
             Type type = kvp.Key;
             string name;
             if(!explicitComponentNames.TryGetValue(type, out name!))
-                // Component Type can't be a generic type, thus type.FullName cannot be null.
                 name = type.FullName!;
             
             // Repeated names.
@@ -120,6 +120,83 @@ public partial class ComponentsManager
         ComponentIDByName = _componentIDByName.AsReadOnly();
         ComponentNameByType = _componentNameByType.AsReadOnly();
         ComponentTypeByName = _componentTypeByName.AsReadOnly();
+    }
+
+    /// <summary>
+    /// Registers a closed generic struct type as a component. If a name is not supplied,
+    /// the type's full name is used.
+    /// </summary>
+    /// <typeparam name="T">A closed generic struct component type.</typeparam>
+    /// <param name="name">Optional name used for component lookup and serialization.</param>
+    /// <exception cref="ArgumentException">
+    /// <typeparamref name="T"/> is not a closed generic value type.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    /// The component name is already used by another component, or the type was already
+    /// registered with a different name.
+    /// </exception>
+    public static void RegisterComponent<T>(string? name = null) where T : struct
+    {
+        Type componentType = typeof(T);
+        if (!componentType.IsGenericType || componentType.ContainsGenericParameters)
+            throw new ArgumentException(
+                $"{componentType} must be a closed generic value type.",
+                nameof(T)
+            );
+
+        string componentName = string.IsNullOrWhiteSpace(name)
+            ? componentType.FullName!
+            : name;
+
+        lock (_componentRegistrationLock)
+        {
+            if (_componentIDByType.TryGetValue(componentType, out _))
+            {
+                if (_componentNameByType[componentType] != componentName)
+                    throw new InvalidOperationException(
+                        $"Component type \"{componentType}\" is already registered with the name " +
+                        $"\"{_componentNameByType[componentType]}\"."
+                    );
+                return;
+            }
+
+            if (_componentIDByName.TryGetValue(componentName, out int existingID))
+                throw new InvalidOperationException(
+                    $"Component type \"{componentType}\" has the same string name " +
+                    $"(\"{componentName}\") as another Component type " +
+                    $"\"{_componentTypes[existingID]}\"."
+                );
+
+            int componentID = _componentTypes.Count;
+            var newPools = new List<(ComponentsManager Manager, IComponentPool Pool)>();
+            for (int i = _managers.Count - 1; i >= 0; i--)
+            {
+                if (_managers[i].TryGetTarget(out ComponentsManager? manager))
+                {
+                    Type poolType = typeof(ComponentPool<>).MakeGenericType(componentType);
+                    var pool = (IComponentPool)Activator.CreateInstance(
+                        poolType,
+                        manager.OfWorld,
+                        manager.MaxEntityCount,
+                        4096
+                    )!;
+                    newPools.Add((manager, pool));
+                }
+                else
+                {
+                    _managers.RemoveAt(i);
+                }
+            }
+
+            _componentTypes.Add(componentType);
+            _componentIDByType.Add(componentType, componentID);
+            _componentIDByName.Add(componentName, componentID);
+            _componentNameByType.Add(componentType, componentName);
+            _componentTypeByName.Add(componentName, componentType);
+
+            foreach (var (manager, pool) in newPools)
+                manager._pools.Add(pool);
+        }
     }
 
     public static void RegisterComponentAddedDelegate(Type componentType, ComponentAddedDelegate del)
@@ -154,24 +231,28 @@ public partial class ComponentsManager
     {
         OfWorld = world;
         MaxEntityCount = maxEntityCount;
-        _pools = new IComponentPool[_componentTypes.Length];
-        SetupComponentPools();
+        _pools = new List<IComponentPool>(_componentTypes.Count);
+        lock (_componentRegistrationLock)
+        {
+            SetupComponentPools();
+            _managers.Add(new WeakReference<ComponentsManager>(this));
+        }
     }
 
     // [MemberNotNull(nameof(_pools))]
     private void SetupComponentPools()
     {
-        for(int i = 0; i < _componentTypes.Length; i++)
+        for(int i = 0; i < _componentTypes.Count; i++)
         {
             Type poolType = typeof(ComponentPool<>).MakeGenericType(_componentTypes[i]);
             // Console.WriteLine($"Attempting to construct Pool Type {poolType} of Component Type {_componentTypes[i]}");
 
-            _pools[i] = (IComponentPool)Activator.CreateInstance(
+            _pools.Add((IComponentPool)Activator.CreateInstance(
                 poolType,
                 OfWorld,
                 MaxEntityCount,
                 4096
-            )!;
+            )!);
         }
     }
 
