@@ -229,7 +229,7 @@ public class NodeSyncManager
     /// </summary>
     /// <param name="WithQuery"></param>
     /// <exception cref="InvalidOperationException"></exception>
-    public void ResetEntitiesLayeredStates(Query? withQuery)
+    public void ResetEntitiesLayeredStates(Query? withQuery = null)
     {
         if(withQuery == null)
             withQuery = new Query(OfWorld);
