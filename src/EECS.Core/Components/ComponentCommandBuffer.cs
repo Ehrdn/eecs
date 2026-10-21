@@ -12,7 +12,7 @@ public struct ComponentCommand
         Set
     }
     public Type ComponentType;
-    // public 
+    public Entity entity;
 }
 
 public class ComponentsCommandBuffer

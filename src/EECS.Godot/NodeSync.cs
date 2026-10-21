@@ -14,13 +14,13 @@ public struct NodeSync
 {
     public PackedScene TargetScene;
     public NodePath TargetParent;
-    public delegate void SyncNodeStateDelegate(Entity entity, Node node);
-    public SyncNodeStateDelegate? SyncNodeStateCallback;
+    // public delegate void SyncNodeStateDelegate(Entity entity, Node node);
+    public Action<Entity, Node>? SyncNodeStateCallback;
     
     public NodeSync(
             PackedScene targetScene,
             NodePath targetParent,
-            SyncNodeStateDelegate? syncNodeStateCallback = null
+            Action<Entity, Node>? syncNodeStateCallback = null
         )
     {
         TargetScene = targetScene;

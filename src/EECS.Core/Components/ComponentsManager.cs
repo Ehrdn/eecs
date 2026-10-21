@@ -4,7 +4,7 @@ using System.Text;
 namespace EECS.Core.Components;
 
 /// <summary>
-/// Attach this to struct that should be components.
+/// Attach this to structs that should be components.
 /// For closed generic component types, use
 /// <see cref="ComponentsManager.RegisterComponent{T}(string?)"/>.
 /// </summary>
@@ -288,7 +288,7 @@ public partial class ComponentsManager
     {
         Add<T>(entity, default);
     }
- 
+
     public void Remove<T>(Entity entity) where T : struct
     {
         GetSet<T>().RemoveFromEntity(entity);

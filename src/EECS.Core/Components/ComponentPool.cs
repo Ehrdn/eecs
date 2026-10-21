@@ -25,6 +25,7 @@ public interface IComponentPool
     void AddToEntity(Entity entity);
     void RemoveFromEntity(Entity entity);
     void SetComponent(Entity entity, object component);
+    public void SetComponentFromPrototype(Entity entity, World prototypeWorld, Entity prototype);
     object GetComponent(Entity entity);
     internal void EntityDestroyed(Entity entity);
     internal void Reset();
@@ -289,5 +290,10 @@ public partial class ComponentPool<T> : IComponentPool where T : struct
         _dense.Clear();
         _entities.Clear();
         _sparse = new PagedArray(MaxID + 1, SparseArrayPageSize);
+    }
+
+    public void SetComponentFromPrototype(Entity entity, World prototypeWorld, Entity prototype)
+    {
+        SetComponent(entity,prototypeWorld.Components.Get<T>(prototype));
     }
 }

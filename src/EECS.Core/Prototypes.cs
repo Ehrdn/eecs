@@ -21,7 +21,7 @@ namespace EECS.Core
                 IComponentPool entityPool = OfWorld.Components.GetSet(cid);
                 IComponentPool prototypePool = prototypeWorld.Components.GetSet(cid);
                 entityPool.AddToEntity(entity);
-                entityPool.SetComponent(entity, prototypePool.GetComponent(prototypeID));
+                entityPool.SetComponentFromPrototype(entity, prototypeWorld, prototypeID);
             }
             return entity;
         }
