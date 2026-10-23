@@ -1,7 +1,7 @@
 using System.Reflection.Metadata;
 using EECS.Core.Components;
 
-namespace EECS.Core;
+namespace EECS.Core.Events;
 
 /// <summary>
 /// Instance of this class describes a condition a entity might or might not satisfy.
@@ -92,7 +92,7 @@ public class EntityEvent<OrderEnum, EventParam>
     public delegate ref EventParam EntityEventHandler(Entity entity, ref EventParam evParams);
     
     /// <summary>
-    /// _handlers[order][sequence][sameSequenceEventIndex]
+    /// Usage _handlers[order][sequence][sameSequenceEventIndex]
     /// </summary>
     private readonly SortedDictionary<int, List<Tuple<EntityCondition?, EntityEventHandler>>>[] _handlers;
 
@@ -112,15 +112,15 @@ public class EntityEvent<OrderEnum, EventParam>
     }
 
     // O(n).
-    public void RegisterHandler(OrderEnum eventOrder, int orderSequence, EntityEventHandler handler, EntityCondition? filter = null)
+    public void RegisterHandler(EntityEventHandler handler, OrderEnum order, EntityCondition? filter = null, int sequence = 0)
     {
-        int order = eventOrder.GetHashCode();
-        if(!_handlers[order].ContainsKey(orderSequence))
-            _handlers[order].Add(orderSequence, new List<Tuple<EntityCondition?, EntityEventHandler>>());
-        _handlers[order][orderSequence].Add(new Tuple<EntityCondition?, EntityEventHandler>(filter,handler));
+        int iorder = order.GetHashCode();
+        if(!_handlers[iorder].ContainsKey(sequence))
+            _handlers[iorder].Add(sequence, new List<Tuple<EntityCondition?, EntityEventHandler>>());
+        _handlers[iorder][sequence].Add(new Tuple<EntityCondition?, EntityEventHandler>(filter,handler));
     }
 
-    public void Fire(Entity entity, ref EventParam evParam)
+    public void Fire(Entity entity, ref EventParam evParams)
     {
         if(EventFilter != null && !EventFilter.Satisfied(entity))
             return;
@@ -128,14 +128,59 @@ public class EntityEvent<OrderEnum, EventParam>
         {
             foreach(var kv in _handlers[order])
             {
-                
+                foreach(var filterHandlerTuple in kv.Value)
+                {
+                    EntityCondition? filter = filterHandlerTuple.Item1;
+                    if(filter != null
+                    && !filter.Satisfied(entity))
+                        continue;
+                    EntityEventHandler handler = filterHandlerTuple.Item2;
+                    handler(entity, ref evParams);
+                }
             }
         }
     }
 }
 
-public class Event<OrderEnum> where OrderEnum : Enum
+public class OrderedEvent<OrderEnum, EventParam>
+    where OrderEnum : Enum
+    where EventParam : struct
 {
+    public readonly int OrderCount;
+    public delegate ref EventParam OrderedEventHandler(ref EventParam evParams);
     
+    /// <summary>
+    /// Usage: _handlers[order][sequence][sameSequenceEventIndex]
+    /// </summary>
+    private readonly SortedDictionary<int, List<OrderedEventHandler>>[] _handlers;
+
+    public OrderedEvent()
+    {
+        OrderCount = Enum.GetNames(typeof(OrderEnum)).Length;
+        _handlers = new SortedDictionary<int, List<OrderedEventHandler>>[OrderCount];
+        for(int i = 0; i < OrderCount; i++)
+            _handlers[i] = new();
+    }
+
+    // O(n).
+    public void RegisterHandler(OrderedEventHandler handler, OrderEnum order, int sequence = 0)
+    {
+        int iorder = order.GetHashCode();
+        if(!_handlers[iorder].ContainsKey(sequence))
+            _handlers[iorder].Add(sequence, new List<OrderedEventHandler>());
+        _handlers[iorder][sequence].Add(handler);
+    }
+
+    public void Fire(ref EventParam evParams)
+    {
+        for(int order = 0; order < _handlers.Length; order++)
+        {
+            foreach(var kv in _handlers[order])
+            {
+                foreach(var handler in kv.Value)
+                    handler(ref evParams);
+            }
+        }
+    }
 }
 
