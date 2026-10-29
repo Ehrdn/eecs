@@ -3,26 +3,54 @@ using EECS.Core.Components;
 
 namespace EECS.Components;
 
-public struct ComponentCommand
+public readonly struct ComponentCommand
 {
-    public enum CommandType
+    public enum CommandTypes
     {
         Add,
         Remove,
         Set
     }
-    public Type ComponentType;
-    public Entity entity;
+    public readonly Entity Target;
+    public readonly Type ComponentType;
+    public readonly CommandTypes CommandType;
+    
+    public readonly object? ComponentToSet;
+    
+    public ComponentCommand(Entity entity, Type componentType, CommandTypes commandType)
+    {
+        Target = entity;
+        ComponentType = componentType;
+        CommandType = commandType;
+
+    }
 }
 
 public class ComponentsCommandBuffer
 {
-    ComponentsManager OfManager;
+    public readonly World OfWorld;
+    private ComponentsManager _components;
+    private List<ComponentCommand> _commands;
 
-    public ComponentsCommandBuffer(ComponentsManager ofManager)
+    public ComponentsCommandBuffer(World ofWorld)
     {
-        OfManager = ofManager;
+        OfWorld = ofWorld;
+        _components = OfWorld.Components;
+        _commands = new();
     }
 
-    
+    public void Add<T>(Entity entity)
+    {
+        
+    }
+
+    public void Execute()
+    {
+        
+    }
+
+    public void Clear()
+    {
+        
+    }
 }
