@@ -37,7 +37,7 @@ public class PrototypeTests
         pro_anim.AddToEntity(pro_entity, new AnimationProgress(12));
         pro_vel.AddToEntity(pro_entity, new Velocity(3, 5, 7));
 
-        Entity entity = _world.Entities.CreateEntity(_prototypeWorld, pro_entity);
+        Entity entity = _world.Entities.Create(_prototypeWorld, pro_entity);
         ComponentPool<Position> pos = _world.Components.GetSet<Position>();
         ComponentPool<AnimationProgress> anim = _world.Components.GetSet<AnimationProgress>();
         ComponentPool<Velocity> vel = _world.Components.GetSet<Velocity>();
@@ -64,7 +64,7 @@ public class PrototypeTests
         ComponentPool<Position> prototypePositions = _prototypeWorld.Components.GetSet<Position>();
         prototypePositions.AddToEntity(prototype, new Position(1, 2, 3));
 
-        Entity entity = _world.Entities.CreateEntity(prototype);
+        Entity entity = _world.Entities.Create(prototype);
 
         Assert.That(_world.Components.GetSet<Position>()[entity],
             Is.EqualTo(new Position(1, 2, 3)));
@@ -77,7 +77,7 @@ public class PrototypeTests
         _prototypeWorld.Entities.Destroy(prototype);
 
         Assert.That(
-            () => _world.Entities.CreateEntity(_prototypeWorld, prototype),
+            () => _world.Entities.Create(_prototypeWorld, prototype),
             Throws.InvalidOperationException.With.Message.EqualTo("Prototype entity is not alive."));
     }
 }

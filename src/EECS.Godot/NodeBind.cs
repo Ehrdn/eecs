@@ -109,7 +109,7 @@ public class NodeBindsManager
         if(!_nodeBindPool.EntityHasComponent(entity))
             throw new InvalidOperationException($"Entity {entity} does not have NodeBind Component.");
         UnbindInvalidNode(entity);
-        if(_nodeBindPool[entity].BindedNode == null)
+        if(_nodeBindPool[entity].BindedNode is null)
             return null;
         return _nodeBindPool[entity].BindedNode!;
     }

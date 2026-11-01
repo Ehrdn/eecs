@@ -60,7 +60,7 @@ internal class PagedArray
         get
         {
             int[] page = _arr[k / PageSize];
-            if(page == null)
+            if(page is null)
                 return -1;
             return page[k % PageSize];
         }
@@ -69,7 +69,7 @@ internal class PagedArray
             int pageIndex = k / PageSize;
             int slotIndex = k % PageSize;
             int[] page = _arr[pageIndex];
-            if(page == null)
+            if(page is null)
             {
                 page = new int[PageSize];
                 Array.Fill(page, -1);

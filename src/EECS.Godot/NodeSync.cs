@@ -160,7 +160,7 @@ public class NodeSyncManager
 
     public void SyncAll(Query? withQuery = null)
     {
-        if(withQuery == null)
+        if(withQuery is null)
             withQuery = new Query(OfWorld);
         if(withQuery.OfWorld != OfWorld)
             throw new InvalidOperationException("withQuery does not have the same OfWorld field as the NodeSync instance");
@@ -231,7 +231,7 @@ public class NodeSyncManager
     /// <exception cref="InvalidOperationException"></exception>
     public void ResetEntitiesLayeredStates(Query? withQuery = null)
     {
-        if(withQuery == null)
+        if(withQuery is null)
             withQuery = new Query(OfWorld);
         if(withQuery.OfWorld != OfWorld)
             throw new InvalidOperationException("withQuery does not have the same OfWorld field as the NodeSync instance");

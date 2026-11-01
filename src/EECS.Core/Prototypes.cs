@@ -11,7 +11,7 @@ namespace EECS.Core
     }
     public partial class EntitiesManager
     {
-        public Entity CreateEntity(World prototypeWorld, Entity prototypeID)
+        public Entity Create(World prototypeWorld, Entity prototypeID)
         {
             Entity entity = Create();
             if(!prototypeWorld.Entities.IsAlive(prototypeID))
@@ -19,17 +19,17 @@ namespace EECS.Core
             foreach(int cid in prototypeWorld.Entities.GetEntityComponentIDs(prototypeID)!)
             {
                 IComponentPool entityPool = OfWorld.Components.GetSet(cid);
-                IComponentPool prototypePool = prototypeWorld.Components.GetSet(cid);
+                // IComponentPool prototypePool = prototypeWorld.Components.GetSet(cid);
                 entityPool.AddToEntity(entity);
                 entityPool.SetComponentFromPrototype(entity, prototypeWorld, prototypeID);
             }
             return entity;
         }
-        public Entity CreateEntity(Entity prototypeID)
+        public Entity Create(Entity prototypeID)
         {
             if(OfWorld.PrototypeWorld is null)
                 throw new InvalidOperationException("OfWorld.PrototypeWorld is null.");
-            return CreateEntity(OfWorld.PrototypeWorld, prototypeID);
+            return Create(OfWorld.PrototypeWorld, prototypeID);
         }
     }
 }

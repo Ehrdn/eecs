@@ -42,7 +42,7 @@ public class EntityCondition
             if(_withoutPools[i].EntityHasComponent(entity))
                 return false;
 
-        if(ConditionPredicate == null
+        if(ConditionPredicate is null
         || ConditionPredicate(entity))
             return true;
         

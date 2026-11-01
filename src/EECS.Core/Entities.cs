@@ -25,7 +25,7 @@ public readonly struct Entity : IEquatable<Entity>
     public int ID => (int)(Value & 0xFFFFFFFF);
     public int Generation => (int)(Value >> 32);
     /// <summary>
-    /// True if the entity's ID is not 0. This doesn not give indication of whether the entity is alive or not, use EntitiesManager.IsAlive instead.
+    /// True if the entity's ID is not 0. This does not give indication of whether the entity is alive or not, use EntitiesManager.IsAlive instead.
     /// Treat the entity as if it is null if this is false.
     /// </summary>
     public bool IsValid => ID != 0;
@@ -125,7 +125,7 @@ public struct EntityBuffer8 : IList<Entity>, IReadOnlyList<Entity>
 
     public void CopyTo(Entity[] array, int arrayIndex)
     {
-        if (array == null)
+        if (array is null)
             throw new ArgumentNullException(nameof(array));
         if (arrayIndex < 0 || arrayIndex > array.Length || array.Length - arrayIndex < Count)
             throw new ArgumentOutOfRangeException(nameof(arrayIndex));
@@ -232,7 +232,7 @@ public struct EntityBuffer16 : IList<Entity>, IReadOnlyList<Entity>
 
     public readonly void CopyTo(Entity[] array, int arrayIndex)
     {
-        if (array == null)
+        if (array is null)
             throw new ArgumentNullException(nameof(array));
         if (arrayIndex < 0 || arrayIndex > array.Length || array.Length - arrayIndex < Count)
             throw new ArgumentOutOfRangeException(nameof(arrayIndex));
@@ -340,7 +340,7 @@ public struct EntityBuffer32 : IList<Entity>, IReadOnlyList<Entity>
 
     public void CopyTo(Entity[] array, int arrayIndex)
     {
-        if (array == null)
+        if (array is null)
             throw new ArgumentNullException(nameof(array));
         if (arrayIndex < 0 || arrayIndex > array.Length || array.Length - arrayIndex < Count)
             throw new ArgumentOutOfRangeException(nameof(arrayIndex));
@@ -431,7 +431,7 @@ public partial class EntitiesManager
         else
             id = EntityIDCount++;
         
-        if(_entityComponents[id] == null)
+        if(_entityComponents[id] is null)
             _entityComponents[id] = new List<int>();
 
         int gen = GetGeneration(id);
